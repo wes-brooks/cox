@@ -1,0 +1,8 @@
+importFrom(Rcpp, sourceCpp)
+#export(LogDetDerChol)
+export(cox.laplace)
+export(cox.variational.indep)
+export(cox.variational)
+export(SRE)
+export(SRE.covariance)
+useDynLib(cox)

@@ -1,0 +1,19 @@
+Package: cox
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1
+Date: 2015-11-09
+Author: Who wrote it
+Maintainer: Who to complain to <yourfault@somewhere.net>
+Description: More about what it does (maybe more than one line)
+License: MIT
+LazyData: TRUE
+Depends:
+    Matrix,
+    RandomFields,
+    deldir
+Imports:
+    Rcpp (>= 0.12.1),
+    RcppEigen
+LinkingTo: Rcpp, RcppEigen
+RoxygenNote: 5.0.0

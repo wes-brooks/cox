@@ -1,0 +1,51 @@
+#-------------------------
+# Variatonal lower bound on likelihood (eq 3.1 of Ormerod and Wand, 2012)
+likelihood.bound <- function(y, X, S, beta, wt, ltau, M, V) {
+  eta <- as.vector(X %*% beta + S %*% M)
+  mu <- exp(eta)
+  tau <- exp(ltau)
+  tryCatch( {
+    cholV <- chol(V)
+    cholV <- t(as.matrix(cholV))
+    v <- exp(VariationalVar(cholV, S) / 2)
+
+    result <- sum(wt * (y * eta - mu * v))
+    result <- result + (ncol(S)*ltau + 2*sum(log(diag(cholV))) - tau*(sum(M^2) + sum(diag(V)))) / 2
+    return(-result)
+  }, error=function(e) return(Inf)
+  )
+}
+
+
+likelihood.bound.V <- function(V, y, X, S, beta, wt, ltau, M) {
+  likelihood.bound(y, X, S, beta, wt, ltau, M, V)
+}
+
+
+likelihood.bound.logV <- function(logV, y, X, S, beta, wt, ltau, M) {
+  V <- matrix(0, ncol(S), ncol(S))
+  indx <- which(!lower.tri(V))
+  V[indx] <- exp(logV)
+  diagV <- diag(V)
+  V <- V + t(V)
+  diag(V) <- diagV
+
+  likelihood.bound(y, X, S, beta, wt, ltau, M, V)
+}
+
+
+likelihood.bound.fin <- function(par, y, X, S, wt, V) {
+  p <- ncol(X)
+  r <- ncol(S)
+
+  beta <- par[1:p]
+  M <- par[(1:r) + p]
+  ltau <- tail(par, 1)
+
+  likelihood.bound(y, X, S, beta, wt, ltau, M, V)
+}
+
+
+
+
+
