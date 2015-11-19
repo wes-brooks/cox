@@ -75,8 +75,8 @@ cox.variational <- function(y, X, S, wt, beta.start, tol=sqrt(.Machine$double.ep
 
     # Check for convergence
     lik <- likelihood.bound(y, X, S, beta, wt, ltau, M, V)
-    if (verbose)cat(paste("Checking final convergence criterion:\n likelihood=", round(lik, 3), "\n convergence criterion=", round(abs(lik - lik.old) / (tol * (tol + abs(lik.old))), 3), "\n"))
-    if (abs(lik - lik.old) < tol * (tol + abs(lik.old))) {
+    if (verbose)cat(paste("Checking final convergence criterion:\n likelihood=", round(lik, 3), "\n convergence criterion=", round(abs(lik - lik.old) / (tol * (tol + abs(lik.old))) / 1000, 3), "\n"))
+    if (abs(lik - lik.old) / 1000 < tol * (tol + abs(lik.old))) {
       conv.outer <- TRUE
     } else lik.old <- lik
   }

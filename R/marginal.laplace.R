@@ -52,6 +52,7 @@ marginal.laplace.quick <- function(beta, ltau, y, X, S, u, wt, verbose) {
   tryCatch( {
     tau <- exp(ltau)
     p <- ncol(X)
+    r <- ncol(S)
     eta <- as.vector(X %*% beta + S %*% u)
     mu <- exp(eta)
 
