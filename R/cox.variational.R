@@ -82,5 +82,5 @@ cox.variational <- function(y, X, S, wt, beta.start, tol=sqrt(.Machine$double.ep
   }
 
   res.fin <- optimHess(c(beta, M, ltau), fn=likelihood.bound.fin, gr=score.fin, y=y, X=X, S=S, V=V, wt=wt)
-  list(beta=beta, M=M, V=V, ltau=ltau, hessian=res.fin)
+  list(beta=beta, M=M, V=V, ltau=ltau, hessian=res.fin, neg.loglik=lik)
 }

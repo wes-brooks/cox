@@ -121,7 +121,7 @@ cox.variational.indep <- function(y, X, S, wt, beta.start, tol=sqrt(.Machine$dou
     } else lik.old <- lik
   }
 
-  out <- list(beta=beta, M=M, diagV=diagV, ltau=ltau)
+  out <- list(beta=beta, M=M, diagV=diagV, ltau=ltau, neg.loglik=lik)
 
   #Compute the Hessian at the converged parameters:
   if (hess) out$hessian <- optimHess(c(beta, M, log.diag.V, ltau), fn=likelihood.bound.fin.indep, gr=score.fin.indep, y=y, X=X, S=S, wt=wt)
