@@ -3,3 +3,5 @@
 .RData
 scratch/
 scratch/*
+src/*.o
+src/*.so

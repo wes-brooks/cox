@@ -73,5 +73,5 @@ cox.laplace <- function(y, X, S, wt, beta.start, tol=sqrt(.Machine$double.eps), 
   if (verbose) cat("Finalized estimation of beta and tau, now estimate the hessian.\n")
   res.fin <- optimHess(par=c(beta, ltau), fn=marginal.joint.quick, y=y, X=X, S=S, u=u, wt=wt, verbose=FALSE)
 
-  list(beta=beta, ltau=ltau, hessian=res.fin, neg.loglik=res$value)
+  list(beta=beta, ltau=ltau, hessian=res.fin, neg.loglik=res$value, u=u)
 }
