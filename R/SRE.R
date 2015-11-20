@@ -14,7 +14,7 @@ SRE <- function(loc) {
   min.1 <- min(xx[2] - xx[1], yy[2] - yy[1])
   points.1 <- data.frame(x=rep(xx, times=len.yy), y=rep(yy, each=len.xx))
   dist.1 <- sqrt(outer(loc$x, points.1$x, '-')^2 + outer(loc$y, points.1$y, '-')^2)
-  SRE <- apply(dist.1, 2, function(z) bisquare(z, 1.5*min.1))
+  SRE <- apply(dist.1, 2, function(z) bisquare(z, 3*min.1))
 
 
   n.2 <- round(3 * n.1)
@@ -27,7 +27,7 @@ SRE <- function(loc) {
   min.2 <- min(xx[2] - xx[1], yy[2] - yy[1])
   points.2 <- data.frame(x=rep(xx, times=len.yy), y=rep(yy, each=len.xx))
   dist.2 <- sqrt(outer(loc$x, points.2$x, '-')^2 + outer(loc$y, points.2$y, '-')^2)
-  SRE <- cbind(SRE, apply(dist.2, 2, function(z) bisquare(z, 1.5*min.2)))
+  SRE <- cbind(SRE, apply(dist.2, 2, function(z) bisquare(z, 3*min.2)))
 
 
   n.3 <- round(3 * n.2)
@@ -40,7 +40,7 @@ SRE <- function(loc) {
   min.3 <- min(xx[2] - xx[1], yy[2] - yy[1])
   points.3 <- data.frame(x=rep(xx, times=len.yy), y=rep(yy, each=len.xx))
   dist.3 <- sqrt(outer(loc$x, points.3$x, '-')^2 + outer(loc$y, points.3$y, '-')^2)
-  SRE <- cbind(SRE, apply(dist.3, 2, function(z) bisquare(z, 1.5*min.3)))
+  SRE <- cbind(SRE, apply(dist.3, 2, function(z) bisquare(z, 3*min.3)))
 
   # Remove any random effect components that are orthgonal to the points
   indx <- which(colSums(SRE)==0)
@@ -57,7 +57,7 @@ SRE <- function(loc) {
   min.4 <- min(xx[2] - xx[1], yy[2] - yy[1])
   points.4 <- data.frame(x=rep(xx, times=len.yy), y=rep(yy, each=len.xx))
   dist.4 <- sqrt(outer(loc$x, points.4$x, '-')^2 + outer(loc$y, points.4$y, '-')^2)
-  bins <- apply(dist.4, 2, function(z) ifelse(z < 1.5*min.4, 1, 0))
+  bins <- apply(dist.4, 2, function(z) ifelse(z < 3*min.4, 1, 0))
 
   # Remove any empty bins
   indx <- which(colSums(bins)==0)
