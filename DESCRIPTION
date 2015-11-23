@@ -16,4 +16,4 @@ Imports:
     Rcpp (>= 0.12.1),
     RcppEigen
 LinkingTo: Rcpp, RcppEigen
-RoxygenNote: 5.0.0
+RoxygenNote: 5.0.1
