@@ -13,10 +13,10 @@
 #' @param tol tolerance for judging convergence of the algorithm
 #' @param verbose if \code{TRUE}, the algorithm prints verbose updates on its progess
 #' @export
-cox.variational.indep <- function(y, X, S, wt, beta.start, tol=sqrt(.Machine$double.eps), verbose=TRUE, hess=TRUE) {
+cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Machine$double.eps), verbose=TRUE, hess=TRUE) {
   # Start by estimating an optimal log(tau), assuming the given beta.start and u=rep(0,p)
   beta <- beta.start
-  tau <- 100
+  tau <- tau.start
   r <- ncol(S)
   p <- ncol(X)
   n <- nrow(X)

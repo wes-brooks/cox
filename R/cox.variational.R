@@ -12,13 +12,13 @@
 #' @param tol tolerance for judging convergence of the algorithm
 #' @param verbose if \code{TRUE}, the algorithm prints verbose updates on its progess
 #' @export
-cox.variational <- function(y, X, S, wt, beta.start, tol=sqrt(.Machine$double.eps), verbose=TRUE) {
+cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Machine$double.eps), verbose=TRUE) {
   r <- ncol(S)
   p <- ncol(X)
   n <- nrow(X)
 
   # Use a variational approximation with independence assumption as the initial estimate for iteration
-  initial <- cox.variational.indep(y=y, X=X, S=S, wt=wt, beta.start=beta.start, tol=tol, verbose=verbose, hess=FALSE)
+  initial <- cox.variational.indep(y=y, X=X, S=S, wt=wt, beta.start=beta.start, tau.start=tau.start, tol=tol, verbose=verbose, hess=FALSE)
 
   # Interpret the initial estimates
   beta <- initial$beta
