@@ -17,8 +17,8 @@ SRE <- function(loc, n.1=16, n.res=3, bw.scale=1.5, res.scale=3) {
     ylim <- c(margin, 1-margin) * diff(YY) + min(YY)
 
     # Find the grid points at this scale
-    len.xx <- sqrt(round(n.grid / (diff(YY) / diff(XX))))
-    len.yy <- sqrt(round(n.grid / (diff(XX) / diff(YY))))
+    len.xx <- round(sqrt(n.grid / (diff(YY) / diff(XX))))
+    len.yy <- round(sqrt(n.grid / (diff(XX) / diff(YY))))
     xx <- seq(xlim[1], xlim[2], len=len.xx)
     yy <- seq(ylim[1], ylim[2], len=len.yy)
     closest <- min(xx[2] - xx[1], yy[2] - yy[1])
@@ -31,36 +31,10 @@ SRE <- function(loc, n.1=16, n.res=3, bw.scale=1.5, res.scale=3) {
     #Get the number of points for the next scale of the grid
     n.grid <- n.grid * res.scale
   }
-#
-#   n.2 <- round(3 * n.1)
-#   len.xx <- round(sqrt(n.2 / (diff(YY) / diff(XX))))
-#   len.yy <- round(sqrt(n.2 / (diff(XX) / diff(YY))))
-#   xlim <- c(0.05, 0.95) * diff(XX) + min(XX)
-#   ylim <- c(0.05, 0.95) * diff(YY) + min(YY)
-#   xx <- seq(xlim[1], xlim[2], len=len.xx)
-#   yy <- seq(ylim[1], ylim[2], len=len.yy)
-#   min.2 <- min(xx[2] - xx[1], yy[2] - yy[1])
-#   points.2 <- data.frame(x=rep(xx, times=len.yy), y=rep(yy, each=len.xx))
-#   dist.2 <- sqrt(outer(loc$x, points.2$x, '-')^2 + outer(loc$y, points.2$y, '-')^2)
-#   SRE <- cbind(SRE, apply(dist.2, 2, function(z) bisquare(z, 1.5*min.2)))
-#
-#
-#   n.3 <- round(3 * n.2)
-#   len.xx <- round(sqrt(n.3 / (diff(YY) / diff(XX))))
-#   len.yy <- round(sqrt(n.3 / (diff(XX) / diff(YY))))
-#   xlim <- c(0.02, 0.98) * diff(XX) + min(XX)
-#   ylim <- c(0.02, 0.98) * diff(YY) + min(YY)
-#   xx <- seq(xlim[1], xlim[2], len=len.xx)
-#   yy <- seq(ylim[1], ylim[2], len=len.yy)
-#   min.3 <- min(xx[2] - xx[1], yy[2] - yy[1])
-#   points.3 <- data.frame(x=rep(xx, times=len.yy), y=rep(yy, each=len.xx))
-#   dist.3 <- sqrt(outer(loc$x, points.3$x, '-')^2 + outer(loc$y, points.3$y, '-')^2)
-#   SRE <- cbind(SRE, apply(dist.3, 2, function(z) bisquare(z, 1.5*min.3)))
 
   # Remove any random effect components that are orthgonal to the points
   indx <- which(colSums(SRE)==0)
   if (length(indx)>0) SRE <- SRE[,-indx]
-
 
   # Final resolution is used for the grid to estimate K and tau
   len.xx <- round(sqrt(n.grid / (diff(YY) / diff(XX))))
