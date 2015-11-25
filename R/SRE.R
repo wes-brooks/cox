@@ -7,6 +7,7 @@ SRE <- function(loc, n.1=16, n.res=3, bw.scale=1.5, res.scale=3) {
   n.grid <- n.1
   SRE <- matrix(NA, nrow(loc), 0)
 
+  if (n.res == 0) stop("All possible resolution layers have been eliminated.\n")
 
   # Set up three different spatial resolutions:
   for (r in 1:n.res) {
