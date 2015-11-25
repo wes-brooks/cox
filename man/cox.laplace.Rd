@@ -4,8 +4,8 @@
 \alias{cox.laplace}
 \title{Estimate the regression parameters of a Cox process model using the Laplace approximation.}
 \usage{
-cox.laplace(y, X, S, wt, beta.start, tol = sqrt(.Machine$double.eps),
-  verbose = TRUE)
+cox.laplace(y, X, S, wt, beta.start, tau.start = 100,
+  tol = sqrt(.Machine$double.eps), verbose = TRUE)
 }
 \arguments{
 \item{y}{vector of response data}
