@@ -9,7 +9,7 @@ using namespace std;
 
 
 // [[Rcpp::export]]
-NumericVector VariationalVar(const Eigen::MatrixXd cholV, Eigen::MatrixXd S)
+NumericVector VariationalVar(const Eigen::MatrixXd cholV, const Eigen::MatrixXd S)
 {
   int n = S.rows();
   NumericVector v(n);
@@ -22,7 +22,7 @@ NumericVector VariationalVar(const Eigen::MatrixXd cholV, Eigen::MatrixXd S)
 
 
 // [[Rcpp::export]]
-NumericVector VariationalVarIndep(const Eigen::VectorXd diagV, Eigen::MatrixXd S)
+NumericVector VariationalVarIndep(const Eigen::VectorXd diagV, const Eigen::MatrixXd S)
 {
   int n = S.rows();
   NumericVector v(n);
@@ -37,7 +37,7 @@ NumericVector VariationalVarIndep(const Eigen::VectorXd diagV, Eigen::MatrixXd S
 
 
 // [[Rcpp::export]]
-Eigen::MatrixXd VariationalScore(Eigen::VectorXd mu, Eigen::VectorXd wt, double tau, Eigen::VectorXd v, const Eigen::MatrixXd V, const Eigen::MatrixXd S)
+Eigen::MatrixXd VariationalScore(const Eigen::VectorXd mu, const Eigen::VectorXd wt, double tau, const Eigen::VectorXd v, const Eigen::MatrixXd V, const Eigen::MatrixXd S)
 {
   int p = S.cols();
 
@@ -56,7 +56,7 @@ Eigen::MatrixXd VariationalScore(Eigen::VectorXd mu, Eigen::VectorXd wt, double 
 
 
 // [[Rcpp::export]]
-Eigen::MatrixXd VariationalScoreLogV(Eigen::VectorXd mu, Eigen::VectorXd wt, double tau, Eigen::VectorXd v, const Eigen::MatrixXd V, const Eigen::MatrixXd S)
+Eigen::MatrixXd VariationalScoreLogV(const Eigen::VectorXd mu, const Eigen::VectorXd wt, double tau, const Eigen::VectorXd v, const Eigen::MatrixXd V, const Eigen::MatrixXd S)
 {
   int p = S.cols();
 
