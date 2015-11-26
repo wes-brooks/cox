@@ -39,7 +39,10 @@ SRE.covariance <- function(loc, dwpr, X=NULL, orthogonal=FALSE, n.1=16, n.res=3,
       Lambda <- chol(K)
 
       complete = TRUE
-    }, error = function(e) {}, finally = n.res <- n.res - 1)
+    }, error = function(e) {}, finally = {
+      n.res <- n.res - 1
+      if (n.res==0) stop('eliminated all possible resolutions')
+    })
 
   }
 
