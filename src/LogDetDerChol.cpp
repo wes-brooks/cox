@@ -41,8 +41,6 @@ NumericVector LogDetDerChol(const Eigen::MatrixXd L, const Eigen::MatrixXd S, co
   // Calculate the derivative of the log-determinant of the Hessian's Cholesky factorization, following reverse-differentiation steps on page 138 of
   // S.P. Smith paper (Journal of Computational and Graphical Statistics, 1995, 4(2)):
 
-  int lim = r-2;
-
   for(int k=r-2; k>=0; k--) {
     for(int j=k+1; j<r; j++) {
       for(int i=j; i<r; i++) {
