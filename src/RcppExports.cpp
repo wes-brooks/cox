@@ -23,39 +23,39 @@ BEGIN_RCPP
 END_RCPP
 }
 // VariationalVar
-NumericVector VariationalVar(const Eigen::MatrixXd cholV, Eigen::MatrixXd S);
+NumericVector VariationalVar(const Eigen::MatrixXd cholV, const Eigen::MatrixXd S);
 RcppExport SEXP cox_VariationalVar(SEXP cholVSEXP, SEXP SSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type cholV(cholVSEXP);
-    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type S(SSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type S(SSEXP);
     __result = Rcpp::wrap(VariationalVar(cholV, S));
     return __result;
 END_RCPP
 }
 // VariationalVarIndep
-NumericVector VariationalVarIndep(const Eigen::VectorXd diagV, Eigen::MatrixXd S);
+NumericVector VariationalVarIndep(const Eigen::VectorXd diagV, const Eigen::MatrixXd S);
 RcppExport SEXP cox_VariationalVarIndep(SEXP diagVSEXP, SEXP SSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< const Eigen::VectorXd >::type diagV(diagVSEXP);
-    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type S(SSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type S(SSEXP);
     __result = Rcpp::wrap(VariationalVarIndep(diagV, S));
     return __result;
 END_RCPP
 }
 // VariationalScore
-Eigen::MatrixXd VariationalScore(Eigen::VectorXd mu, Eigen::VectorXd wt, double tau, Eigen::VectorXd v, const Eigen::MatrixXd V, const Eigen::MatrixXd S);
+Eigen::MatrixXd VariationalScore(const Eigen::VectorXd mu, const Eigen::VectorXd wt, double tau, const Eigen::VectorXd v, const Eigen::MatrixXd V, const Eigen::MatrixXd S);
 RcppExport SEXP cox_VariationalScore(SEXP muSEXP, SEXP wtSEXP, SEXP tauSEXP, SEXP vSEXP, SEXP VSEXP, SEXP SSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< Eigen::VectorXd >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< Eigen::VectorXd >::type wt(wtSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type wt(wtSEXP);
     Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< Eigen::VectorXd >::type v(vSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type v(vSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type V(VSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type S(SSEXP);
     __result = Rcpp::wrap(VariationalScore(mu, wt, tau, v, V, S));
@@ -63,15 +63,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // VariationalScoreLogV
-Eigen::MatrixXd VariationalScoreLogV(Eigen::VectorXd mu, Eigen::VectorXd wt, double tau, Eigen::VectorXd v, const Eigen::MatrixXd V, const Eigen::MatrixXd S);
+Eigen::MatrixXd VariationalScoreLogV(const Eigen::VectorXd mu, const Eigen::VectorXd wt, double tau, const Eigen::VectorXd v, const Eigen::MatrixXd V, const Eigen::MatrixXd S);
 RcppExport SEXP cox_VariationalScoreLogV(SEXP muSEXP, SEXP wtSEXP, SEXP tauSEXP, SEXP vSEXP, SEXP VSEXP, SEXP SSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< Eigen::VectorXd >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< Eigen::VectorXd >::type wt(wtSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type wt(wtSEXP);
     Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< Eigen::VectorXd >::type v(vSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type v(vSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type V(VSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type S(SSEXP);
     __result = Rcpp::wrap(VariationalScoreLogV(mu, wt, tau, v, V, S));
