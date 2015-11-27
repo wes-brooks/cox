@@ -1,9 +1,9 @@
 #---------------------------
 # Set up the spatial basis functions
 #' @export
-SRE <- function(loc, n.1=16, n.res=3, bw.scale=1.5, res.scale=3) {
-  XX <- range(loc$x)
-  YY <- range(loc$y)
+SRE <- function(loc, n.1=16, n.res=3, bw.scale=1.5, res.scale=3, xlim=NULL, ylim=NULL) {
+  if (!is.null(xlim)) XX <- range(loc$x) else XX <- xlim
+  if (!is.null(ylim)) YY <- range(loc$y) else YY <- ylim
   n.grid <- n.1
   SRE <- matrix(NA, nrow(loc), 0)
 
@@ -11,7 +11,7 @@ SRE <- function(loc, n.1=16, n.res=3, bw.scale=1.5, res.scale=3) {
 
   # Set up three different spatial resolutions:
   for (r in 1:n.res) {
-    margin <- runif(n=1, min=0, max=0.1)
+    margin <- 1 / 2 / sqrt(n.grid)
 
     # Find the limits of this grid scale
     xlim <- c(margin, 1-margin) * diff(XX) + min(XX)
