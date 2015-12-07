@@ -5,3 +5,5 @@ scratch/
 scratch/*
 src/*.o
 src/*.so
+*/.directory
+.directory
