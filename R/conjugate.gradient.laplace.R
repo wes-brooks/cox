@@ -1,6 +1,20 @@
-#------------------------------
-# Maximize the marginal log likelihood with respect to regression coefficients beta and
-# spatial random effect precision component tau.
+#' Maximize the marginal log likelihood with respect to regression coefficients
+#' beta and spatial random effect precision component tau.
+#' 
+#' @param objective function to be minimized (i.e. the marginal likelihood)
+#' @param gradient function to calculate the gradient of the objective
+#' @param y response variable for the regression function
+#' @param X design matrix of covariates for the systematic portion of the model
+#' @param S spatial random effect design matrix for the stochastic portion of the model
+#' @param beta vector of initial regression coefficients for the fixed effects
+#' @param u vector of initial values of the random effect loadings (coefficients)
+#' @param wt vector giving the weight of each observation
+#' @param ltau initial value for log of precision of the random effect loadings, \code{u}
+#' @param verbose indicates whether to write detailed progress reports to standard output
+#' @param tol proportional change in likelihood smaller than \code{tol} indicates convergence
+#' 
+#' @return List consisting of \code{par}, the value of parameters that minimize
+#' the objective function, and \code{value}, the value of the minimized objective
 conjugate.gradient.laplace <- function(objective, gradient, y, X, S, beta, u, wt, ltau, verbose=TRUE, tol=sqrt(.Machine$double.eps)) {
   #Initial parameters:
   n <- nrow(S)

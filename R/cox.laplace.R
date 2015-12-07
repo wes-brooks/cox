@@ -1,4 +1,3 @@
-#-------------------------
 #' Estimate the regression parameters of a Cox process model using the Laplace approximation.
 #'
 #' \code{cox.laplace} uses a Laplace approximation to integrate spatial random effects out of a Cox process regression model.

@@ -4,7 +4,7 @@
 \alias{cox.variational.indep}
 \title{Estimate the regression parameters of a Cox process model using the variational approximation and assuming independence of the random effects.}
 \usage{
-cox.variational.indep(y, X, S, wt, beta.start,
+cox.variational.indep(y, X, S, wt, beta.start, tau.start = 100,
   tol = sqrt(.Machine$double.eps), verbose = TRUE, hess = TRUE)
 }
 \arguments{
@@ -21,6 +21,11 @@ cox.variational.indep(y, X, S, wt, beta.start,
 \item{tol}{tolerance for judging convergence of the algorithm}
 
 \item{verbose}{if \code{TRUE}, the algorithm prints verbose updates on its progess}
+}
+\value{
+list composed of these elements:
+
+\code{beta} estimated vector of regression coefficients
 }
 \description{
 \code{cox.variational.indep} uses a variational approximation to estimate the parameters of a Cox process regression model with spatial random effects.

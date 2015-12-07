@@ -4,8 +4,8 @@
 \alias{cox.variational}
 \title{Estimate the regression parameters of a Cox process model using the variational approximation with unconstrained covariance for the random effects.}
 \usage{
-cox.variational(y, X, S, wt, beta.start, tol = sqrt(.Machine$double.eps),
-  verbose = TRUE)
+cox.variational(y, X, S, wt, beta.start, tau.start = 100,
+  tol = sqrt(.Machine$double.eps), verbose = TRUE)
 }
 \arguments{
 \item{y}{vector of response data}
@@ -21,6 +21,21 @@ cox.variational(y, X, S, wt, beta.start, tol = sqrt(.Machine$double.eps),
 \item{tol}{tolerance for judging convergence of the algorithm}
 
 \item{verbose}{if \code{TRUE}, the algorithm prints verbose updates on its progess}
+}
+\value{
+list of results containing the following elements:
+
+\code{beta}: estimated vector of fixed effect regression coefficients
+
+\code{M}: estimated mean vector for the posterior of the spatial random effects at the converged value of the variational approximation
+
+\code{V}: estimated covariance matrix for the posterior of the spatial random effects at the converged value of the variational approximation
+
+\code{ltau}: estimated precision component for the spatial random effect
+
+\code{hessian}: estimated hessian matrix for \code{beta}, \code{M}, and \code{ltau} at convergence (estimated by call to \code{optim})
+
+\code{neg.log.lik}: negative of the variational lower bound on the marginal log-likelihood at convergence
 }
 \description{
 \code{cox.variational} uses a variational approximation to estimate the parameters of a Cox process regression model with spatial random effects.

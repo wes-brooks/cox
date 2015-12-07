@@ -1,5 +1,20 @@
-#--------------------------
-# Conjugate gradient to estimate the covariance matrix V of the spatial random effects
+#' Maximize the marginal log likelihood with respect to the covariance matrix of the spatial random effects
+#'
+#' @param objective function to be minimized (i.e. the marginal likelihood)
+#' @param gradient function to calculate the gradient of the objective
+#' @param y response variable for the regression function
+#' @param X design matrix of covariates for the systematic portion of the model
+#' @param S spatial random effect design matrix for the stochastic portion of the model
+#' @param beta vector of initial regression coefficients for the fixed effects
+#' @param wt vector giving the weight of each observation
+#' @param ltau initial value for logarithm of prior distribution on the precision of the random effect loadings, \code{u} (precision component)
+#' @param M vector of assumed posterior means of the spatial random effects
+#' @param logV initial value of logarithm of the entries of the random effect posterior covariance matrix
+#' @param verbose indicates whether to write detailed progress reports to standard output
+#' @param tol proportional change in likelihood smaller than \code{tol} indicates convergence
+#'
+#' @return List consisting of \code{par}, the value of parameters that minimize
+#' the objective function, and \code{value}, the value of the minimized objective
 conjugate.gradient <- function(objective, gradient, y, X, S, beta, wt, ltau, M, logV, verbose=TRUE, tol=sqrt(.Machine$double.eps)) {
   #Initial parameters:
   n <- nrow(S)

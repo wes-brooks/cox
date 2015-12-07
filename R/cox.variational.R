@@ -8,9 +8,24 @@
 #' @param X design matrix for fized effects
 #' @param S design matrix for the spatial random effects
 #' @param wt vector of observation weights
-#' @param beta.start initial values of the fixed effect coefficients (used for iterative estimation scheme)
+#' @param beta.start starting values for iteration to estimate the fixed effect coefficients
 #' @param tol tolerance for judging convergence of the algorithm
-#' @param verbose if \code{TRUE}, the algorithm prints verbose updates on its progess
+#' @param verbose logical indicating whether to write detailed progress reports to standard output
+#'
+#' @return list of results containing the following elements:
+#'
+#' \code{beta}: estimated vector of fixed effect regression coefficients
+#'
+#' \code{M}: estimated mean vector for the posterior of the spatial random effects at the converged value of the variational approximation
+#'
+#' \code{V}: estimated covariance matrix for the posterior of the spatial random effects at the converged value of the variational approximation
+#'
+#' \code{ltau}: estimated precision component for the spatial random effect
+#'
+#' \code{hessian}: estimated hessian matrix for \code{beta}, \code{M}, and \code{ltau} at convergence (estimated by call to \code{optim})
+#'
+#' \code{neg.log.lik}: negative of the variational lower bound on the marginal log-likelihood at convergence
+#'
 #' @export
 cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Machine$double.eps), verbose=TRUE) {
   r <- ncol(S)

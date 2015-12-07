@@ -1,4 +1,3 @@
-#----------------------
 #' Estimate the regression parameters of a Cox process model using the variational approximation and assuming independence of the random effects.
 #'
 #' \code{cox.variational.indep} uses a variational approximation to estimate the parameters of a Cox process regression model with spatial random effects.
@@ -9,9 +8,25 @@
 #' @param X design matrix for fized effects
 #' @param S design matrix for the spatial random effects
 #' @param wt vector of observation weights
-#' @param beta.start initial values of the fixed effect coefficients (used for iterative estimation scheme)
+#' @param beta.start starting values for iteration to estimate the fixed effect coefficients
 #' @param tol tolerance for judging convergence of the algorithm
-#' @param verbose if \code{TRUE}, the algorithm prints verbose updates on its progess
+#' @param verbose logical indicating whether to write detailed progress reports to standard output
+#' @param hess logical indicating whether to compute the hessian after convergence (slow)
+#'
+#' @return list composed of these elements:
+#'
+#' \code{beta}: estimated vector of fixed effect regression coefficients
+#'
+#' \code{M}: estimated mean vector for the posterior of the spatial random effects at the converged value of the variational approximation
+#'
+#' \code{diagV}: vector of diagonal entries of the estimated covariance matrix for the posterior of the spatial random effects at convergence of the variational approximation
+#'
+#' \code{ltau}: estimated precision component for the spatial random effect
+#'
+#' \code{hessian}: estimated hessian matrix for \code{beta}, \code{M}, \code{log(diagV)} and \code{ltau} at convergence (estimated by call to \code{optim})
+#'
+#' \code{neg.log.lik}: negative of the variational lower bound on the marginal log-likelihood at convergence
+#'
 #' @export
 cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Machine$double.eps), verbose=TRUE, hess=TRUE) {
   # Start by estimating an optimal log(tau), assuming the given beta.start and u=rep(0,p)

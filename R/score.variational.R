@@ -1,3 +1,16 @@
+#' Gradient of the variational negative log-likelihood with respect to beta, M, and ltau
+#'
+#' Gives the gradient of the variational negative log-likelihood with respect to coefficients \code{beta}, precision component \code{ltau}, and mean vector of the variational approximation, \code{M}. Within the \pkg{cox} package, this function is used to calculate gradients within a call to \code{optim} after the variational approximation has converged, as part of the process of calculating the Hessian.
+#'
+#' @param par vector composed of \code{beta}, \code{M}, and \code{ltau}
+#' @param y vector of response values
+#' @param X matrix of fixed effect covariates
+#' @param S design matrix for the spatial random effects
+#' @param wt vector of observation weights
+#' @param V converged covariance matrix for the random effects, estimated by a variational approximation
+#'
+#' @return vector of gradients of the variational negative log-likelihood with respect to \code{par}
+#'
 score.fin <- function(par, y, X, S, wt, V) {
   p <- ncol(X)
   r <- ncol(S)
