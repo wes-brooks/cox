@@ -1,11 +1,11 @@
 Package: cox
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Estimate Cox process regression models
 Version: 0.1
 Date: 2015-11-09
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
+Author: Wesley Brooks
+Maintainer: Wesley Brooks <wesley.brooks@unsw.edu.au>
+Description: The \pkg{cox} package is used to estimate regression models for the Cox process.
 License: MIT
 LazyData: TRUE
 Depends:
