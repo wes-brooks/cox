@@ -1,8 +1,6 @@
 .Rproj.user
 .Rhistory
 .RData
-scratch/
-scratch/*
 src/*.o
 src/*.so
 */.directory
