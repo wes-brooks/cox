@@ -6,6 +6,28 @@
 
 using namespace Rcpp;
 
+// DerLogDetChol
+Eigen::MatrixXd DerLogDetChol(const Eigen::MatrixXd L);
+RcppExport SEXP cox_DerLogDetChol(SEXP LSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type L(LSEXP);
+    __result = Rcpp::wrap(DerLogDetChol(L));
+    return __result;
+END_RCPP
+}
+// DerLogDetCholIndep
+Eigen::VectorXd DerLogDetCholIndep(const Eigen::VectorXd diagV);
+RcppExport SEXP cox_DerLogDetCholIndep(SEXP diagVSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type diagV(diagVSEXP);
+    __result = Rcpp::wrap(DerLogDetCholIndep(diagV));
+    return __result;
+END_RCPP
+}
 // LogDetDerChol
 NumericVector LogDetDerChol(const Eigen::MatrixXd L, const Eigen::MatrixXd S, const Eigen::MatrixXd X, const Eigen::VectorXd mu, const Eigen::VectorXd wt, double tau);
 RcppExport SEXP cox_LogDetDerChol(SEXP LSEXP, SEXP SSEXP, SEXP XSEXP, SEXP muSEXP, SEXP wtSEXP, SEXP tauSEXP) {
