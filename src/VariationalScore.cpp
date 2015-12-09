@@ -67,8 +67,14 @@ Eigen::MatrixXd VariationalScoreLogV(const Eigen::VectorXd mu, const Eigen::Vect
   for (int i=0; i<p; i++)
     grad.diagonal()[i] -= tau;
 
+  // This matrix has ones on the diagonal and twos off-diagonal.
+  // The twos double the gradient off-diagonal because the variance-covariance matrix is symmetric
+  // and we will only keep the upper triangle.
   Eigen::MatrixXd ones;
   ones.setOnes(p, p);
+  ones = ones * 2;
+  for (int i=0; i<p; i++)
+    ones.diagonal()(i) = 1;
 
   grad = grad.array() * V.array() + ones.array();
   grad *= 0.5;

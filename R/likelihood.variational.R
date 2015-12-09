@@ -1,6 +1,8 @@
 #-------------------------
 # Variatonal lower bound on likelihood (eq 3.1 of Ormerod and Wand, 2012)
 likelihood.bound <- function(y, X, S, beta, wt, ltau, M, V) {
+  r <- ncol(S)
+
   eta <- as.vector(X %*% beta + S %*% M)
   mu <- exp(eta)
   tau <- exp(ltau)
@@ -11,6 +13,7 @@ likelihood.bound <- function(y, X, S, beta, wt, ltau, M, V) {
 
     result <- sum(wt * (y * eta - mu * v))
     result <- result + (ncol(S)*ltau + 2*sum(log(diag(cholV))) - tau*(sum(M^2) + sum(diag(V)))) / 2
+    result <- result + r/2*(1 + log(2*pi)) + log(det(cholV)) / 2
     return(-result)
   }, error=function(e) return(Inf)
   )

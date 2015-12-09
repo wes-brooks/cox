@@ -60,10 +60,10 @@ score <- function(y, X, S, beta, wt, ltau, M, V) {
 }
 
 
-
-score.V <- function(V, y, X, S, beta, wt, ltau, M) {
-  score(y, X, S, beta, wt, ltau, M, V)
-}
+#
+# score.V <- function(V, y, X, S, beta, wt, ltau, M) {
+#   score(y, X, S, beta, wt, ltau, M, V)
+# }
 
 
 
@@ -85,6 +85,7 @@ score.logV <- function(logV, y, X, S, beta, wt, ltau, M) {
   v <- exp(VariationalVar(cholV, S) / 2)
 
   grad <- VariationalScoreLogV(mu, wt, tau, v, as.matrix(V), S)
+  grad <- grad + DerLogDetChol(cholV) / 2;
   grad[indx]
 }
 

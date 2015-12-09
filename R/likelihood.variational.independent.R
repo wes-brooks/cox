@@ -9,6 +9,7 @@ likelihood.bound.indep <- function(M, log.diagV, ltau, y, X, S, beta, wt) {
 
   result <- sum(wt * (y * eta - mu * v))
   result <- result + (ncol(S)*ltau + sum(log.diagV) - tau*(sum(M^2) + sum(diagV))) / 2
+  result <- result + r/2*(1 + log(2*pi)) + sum(log(diagV)) / 2
   -result
 }
 

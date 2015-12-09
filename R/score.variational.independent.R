@@ -12,6 +12,7 @@ score.diagV <- function(log.diagV, M, ltau, y, X, S, beta, wt) {
   grad.logV <- -as.vector(t(S^2) %*% as.matrix(wt * mu * v))*diagV
   grad.logV <- grad.logV + 1
   grad.logV <- grad.logV - tau*diagV # D_V
+  grad.logV <- grad.logV + DerLogDetCholIndep(diagV)
 
   grad.logV / 2
 }
@@ -37,7 +38,9 @@ score.fin.indep <- function(par, y, X, S, wt) {
 
   grad.logV <- -as.vector(t(S^2) %*% as.matrix(wt * mu * v))*diagV
   grad.logV <- grad.logV + 1
-  grad.logV <- (grad.logV - tau*diagV) / 2
+  grad.logV <- grad.logV - tau*diagV
+  grad.logV <- grad.logV + DerLogDetCholIndep(diagV)
+  grad.logV <- grad.logV / 2
 
   # Now gradient w.r.t. beta:
   grad.beta <- as.vector(t(X) %*% Diagonal(x=wt) %*% (y - mu*v))
