@@ -1,12 +1,4 @@
-# #--------------------------
-# # Calculate the (negative) marginal log-likelihod
-# marginal.tau <- function(ltau, beta, y, X, S, wt) {
-#   marginal.laplace(beta, ltau, y, X, S, wt)
-# }
-
-
-#--------------------------
-# Calculate the (negative) marginal log-likelihod
+#' Calculate the (negative) marginal log-likelihod
 marginal.ltau <- function(ltau, beta, y, X, S, wt, verbose, tol=sqrt(.Machine$double.eps)) {
   tryCatch( {
     tau <- exp(ltau)

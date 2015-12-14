@@ -37,9 +37,11 @@ marginal.laplace <- function(beta, ltau, y, X, S, u, wt, tol, verbose) {
     L <- chol(H)
     L <- t(L)
 
-    r <- ncol(S)
-    -sum(wt * (y*eta - exp(eta))) + tau/2 * sum(u^2) - r/2*log(tau) + sum(log(diag(L)))
-  }, error=function(e) return(Inf)
+    nll <- -sum(wt * (y*eta - exp(eta))) + tau/2 * sum(u^2) - r/2*ltau + sum(log(diag(L)))
+
+    if (verbose) cat(paste('beta=', paste(round(beta, 3), collapse=', '), "; ltau=", round(ltau, 3), "; neg-log-likelihood=", round(nll,3), '\n', sep=''))
+    nll
+    }, error=function(e) return(Inf)
   )
 }
 

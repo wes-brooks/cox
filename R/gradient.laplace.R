@@ -1,6 +1,6 @@
 #-------------------------
 # Calculate the gradient of the marginal log-likelihood
-gradient.laplace <- function(beta, ltau, y, X, S, u, wt) {
+gradient.laplace <- function(beta, ltau, y, X, S, u, wt, tol, verbose) {
   tryCatch( {
     tau <- exp(ltau)
     p <- ncol(X)
@@ -22,14 +22,14 @@ gradient.laplace <- function(beta, ltau, y, X, S, u, wt) {
     DH.Dbeta <- array(data=0, dim=c(r,r,p))
     for (j in 1:p) {
       # Rate of change of H w.r.t. beta[j]:
-      DH.Dbeta[,,j] <- t(S) %*% diag(mu*wt*X[,j]) %*% S
+      DH.Dbeta[,,j] <- t(S) %*% sweep(S, 1, as.vector(mu*wt*X[,j]), '*')
     }
 
     # Rate of change of log-det-cholesky factor w.r.t. beta.
     D2 <- rep(0, p)
     for (j in 1:p) {
       # Rate of change of log-det-cholesky factor w.r.t. beta[j]
-      D2[j] <- sum(deriv * DH.dbeta[,,j])
+      D2[j] <- sum(deriv * DH.Dbeta[,,j])
     }
 
     # Rate of change of log-det-cholesky factor w.r.t. tau

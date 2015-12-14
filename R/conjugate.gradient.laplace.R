@@ -1,6 +1,6 @@
 #' Maximize the marginal log likelihood with respect to regression coefficients
 #' beta and spatial random effect precision component tau.
-#' 
+#'
 #' @param objective function to be minimized (i.e. the marginal likelihood)
 #' @param gradient function to calculate the gradient of the objective
 #' @param y response variable for the regression function
@@ -12,7 +12,7 @@
 #' @param ltau initial value for log of precision of the random effect loadings, \code{u}
 #' @param verbose indicates whether to write detailed progress reports to standard output
 #' @param tol proportional change in likelihood smaller than \code{tol} indicates convergence
-#' 
+#'
 #' @return List consisting of \code{par}, the value of parameters that minimize
 #' the objective function, and \code{value}, the value of the minimized objective
 conjugate.gradient.laplace <- function(objective, gradient, y, X, S, beta, u, wt, ltau, verbose=TRUE, tol=sqrt(.Machine$double.eps)) {
@@ -22,7 +22,7 @@ conjugate.gradient.laplace <- function(objective, gradient, y, X, S, beta, u, wt
 
   finished <- FALSE
   par <- c(beta, ltau)
-  f.new <- objective(par, y, X, S, u, wt)
+  f.new <- objective(par, y=y, X=X, S=S, u=u, wt=wt, tol=tol, verbose=verbose)
   f.old <- Inf
   check <- Inf
 
@@ -42,7 +42,7 @@ conjugate.gradient.laplace <- function(objective, gradient, y, X, S, beta, u, wt
       while(f.new < f.old && !converged && !conv.inner && i<p) {
         i <- i+1
 
-        dir.new <- gradient(par, y, X, S, u, wt)
+        dir.new <- gradient(par, y=y, X=X, S=S, u=u, wt=wt, tol=tol, verbose=verbose)
         dir.new <- dir.new / sqrt(sum(dir.new^2))
 
         #First iteration, ignore conjugacy - thereafter, use it.
@@ -56,12 +56,14 @@ conjugate.gradient.laplace <- function(objective, gradient, y, X, S, beta, u, wt
 
         #Find the optimal step size
         #Backtracking: stop when the loss function is majorized
-        f.proposed <- objective(par + t*par.step, y, X, S, u, wt)
+        f.proposed <- objective(par + t*par.step, y=y, X=X, S=S, u=u, wt=wt, tol=tol, verbose=verbose)
         condition <- (f.proposed > f.new - sum((t*par.step)*dir.new) - 1/(2*t)*sum((t*par.step)^2))[1]
+        condition <- f.proposed > f.new
         while(condition && t > .Machine$double.eps) {
           t = 0.5*t
-          f.proposed <- objective(par + t*par.step, y, X, S, u, wt)
+          f.proposed <- objective(par + t*par.step, y=y, X=X, S=S, u=u, wt=wt, tol=tol, verbose=verbose)
           condition = (f.proposed > f.new - sum((t*par.step)*dir.new) - 1/(2*t)*sum((t*par.step)^2))[1]
+          condition <- f.proposed > f.new
 
           #This is the final stopping rule: t gets so small that 1/(2*t) is Inf
           if (is.na(condition)) {
