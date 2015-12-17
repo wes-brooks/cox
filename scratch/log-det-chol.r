@@ -45,6 +45,17 @@ DerLogDetChol2 <- function(P, zed) {
 }
 
 
+data(mtcars)
+X <- as.matrix(mtcars)
+P <- t(X) %*% X
+L <- t(chol(P))
+Li <- solve(L)
+
+zed <- matrix(0, ncol(X), ncol(X))
+zed[5,4] <- zed[4,5] <- 1
 
 # SEEMS TO WORK!?!?!?!
 sum(diag(Phi(Li %*% zed %*% t(Li))))
+
+# COMPARE TO:
+sum(log(diag(chol(P + zed)))) - sum(log(diag(chol(P))))
