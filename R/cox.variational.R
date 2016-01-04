@@ -62,7 +62,7 @@ cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Ma
     V <- V + t(V)
     diag(V) <- diagV
 
-    # Holding V fixed, stimate M, beta, and tau by iteratively reweighted least squares
+    # Holding V fixed, estimate M, beta, and tau by iteratively reweighted least squares
     if (verbose) cat("Holding V fixed to estimate M, tau, and beta")
     cholV <- as.matrix(t(chol(V)))
     v <- exp(VariationalVar(cholV, S) / 2)
