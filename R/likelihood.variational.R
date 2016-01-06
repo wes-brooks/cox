@@ -4,6 +4,7 @@ likelihood.bound <- function(y, X, S, beta, wt, ltau, M, V) {
   r <- ncol(S)
 
   eta <- as.vector(X %*% beta + S %*% M)
+  fixed <- as.vector(X %*% beta)
   mu <- exp(eta)
   tau <- exp(ltau)
   tryCatch( {
@@ -11,9 +12,9 @@ likelihood.bound <- function(y, X, S, beta, wt, ltau, M, V) {
     cholV <- t(as.matrix(cholV))
     v <- exp(VariationalVar(cholV, S) / 2)
 
-    result <- sum(wt * (y * eta - mu * v))
-    result <- result + (ncol(S)*ltau + 2*sum(log(diag(cholV))) - tau*(sum(M^2) + sum(diag(V)))) / 2
-    result <- result + r/2*(1 + log(2*pi)) + log(det(cholV)) #Add the entropy term
+    result <- sum(wt * (y * eta - exp(fixed) * v)) #Expectation of conditional density
+    result <- result + (r*ltau - tau*(sum(M^2) + sum(diag(V)))) / 2 #Expectation of prior on random effects
+    result <- result + r/2*(1 + log(2*pi)) + sum(log(diag(cholV))) #Add the entropy term
     return(-result)
   }, error=function(e) return(Inf)
   )

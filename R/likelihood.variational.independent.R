@@ -4,14 +4,15 @@ likelihood.bound.indep <- function(M, log.diagV, ltau, y, X, S, beta, wt) {
   r <- ncol(S)
 
   eta <- as.vector(X %*% beta + S %*% M)
+  fixed <- as.vector(X %*% beta)
   mu <- exp(eta)
   tau <- exp(ltau)
   diagV <- exp(log.diagV)
   v <- exp(VariationalVarIndep(diagV, S) / 2)
 
-  result <- sum(wt * (y * eta - mu * v))
-  result <- result + (ncol(S)*ltau + sum(log.diagV) - tau*(sum(M^2) + sum(diagV))) / 2
-  result <- result + r/2*(1 + log(2*pi)) + sum(log(diagV)) / 2
+  result <- sum(wt * (y * eta - exp(fixed) * v)) # Expected conditional log-likelihood
+  result <- result + (r*ltau - tau*(sum(M^2) + sum(diagV))) / 2 # Add expectation of the prior on the random effects
+  result <- result + r/2*(1 + log(2*pi)) + sum(log(diagV)) # Add the entropy term
   -result
 }
 
