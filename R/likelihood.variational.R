@@ -14,7 +14,7 @@ likelihood.bound <- function(y, X, S, beta, wt, ltau, M, V) {
 
     result <- sum(wt * (y * eta - mu * v)) #Expectation of conditional density
     result <- result + (r*ltau - tau*(sum(M^2) + sum(diag(V)))) / 2 #Expectation of prior on random effects
-    result <- result + r/2*(1 + log(2*pi)) + sum(log(diag(cholV))) #Add the entropy term
+    result <- result - r/2*(1 + log(2*pi)) - sum(log(diag(cholV))) #Add the entropy term
     return(-result)
   }, error=function(e) return(Inf)
   )
