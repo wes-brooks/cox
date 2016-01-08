@@ -97,22 +97,35 @@ cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sq
     #diagV <- newton.indep(y, eta, S, wt, ltau, diagV)
     if (verbose) cat("Estimating variances for the variational approximation... ")
     # res <- optim(log.diag.V, fn=likelihood.bound.diagV, gr=score.diagV, y=y, M=M, X=X, S=S, beta=beta, wt=wt, ltau=ltau, control=list(reltol=.Machine$double.eps), method="BFGS")
-    res <- conjugate.gradient(log.diag.V, objective=likelihood.bound.diagV, gradient=score.diagV, y=y, M=M, X=X, S=S, beta=beta, wt=wt, ltau=ltau, tol=tol)
-    log.diag.V <- res$par
+    #res <- conjugate.gradient(log.diag.V, objective=likelihood.bound.diagV, gradient=score.diagV, y=y, M=M, X=X, S=S, beta=beta, wt=wt, ltau=ltau, tol=tol)
+    #res <- optim(c(M, log.diag.V), fn=likelihood.bound.variational, gr=score.variational, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, method="BFGS")
+    #res <- conjugate.gradient(M=M, logV=log.diag.V, objective=likelihood.bound.variational, gradient=score.variational, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, tol=tol)
+    res <- conjugate.gradient(M=M, logV=log.diag.V, objective=likelihood.bound.diagV, gradient=score.diagV, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, tol=tol)
+    #M <- res$M
+    log.diag.V <- res$logV
     diagV <- exp(log.diag.V)
     if (verbose) cat("done!\n")
 
     # Estimate M, beta, and tau for fixed V
     if (verbose) cat("Maximizing variational likelihood for beta and M: ")
+
     v <- exp(VariationalVarIndep(diagV, S) / 2)
+
+    #m <- as.vector(S %*% M)
+    #pseudoCovar <- X
     pseudoCovar <- rbind(cbind(X, S), cbind(Matrix(0, length(M), p),  sqrt(tau/2) * diag(r)))
     converged <- FALSE
     while(!converged) {
+      #z <- eta - m + (y / v - mu) / mu
+      #pseudodata <- z
+      #pois <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v))
+      #eta <- m + as.vector(X %*% pois$coefficients)
+
       z <- eta + (y / v - mu) / mu
       pseudodata <- c(z, rep(0, length(M)))
       pois <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v, rep(1, r)))
+      eta <- as.vector(cbind(X, S) %*% pois$coefficients)
 
-      eta <- cbind(X, S) %*% pois$coefficients
       mu <- exp(eta)
 
       norm.new <- sum(pois$coefficients^2)
@@ -120,6 +133,7 @@ cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sq
       norm.old <- norm.new
       if (verbose) cat(".")
     }
+    #beta <- pois$coefficients
     beta <- pois$coefficients[1:ncol(X)]
     M <- tail(pois$coefficients, ncol(S))
     ltau <- log(ncol(S)) - log(sum(M^2) + sum(diagV))
