@@ -21,7 +21,7 @@ conjugate.gradient <- function(objective, gradient, y, X, S, beta, wt, ltau, M, 
   r <- ncol(S)
 
   finished <- FALSE
-  f.new <- objective(logV, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, M=M)
+  f.new <- objective(y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, M=M, logV=logV)
   check <- Inf
 
   while(!finished) {
@@ -33,7 +33,7 @@ conjugate.gradient <- function(objective, gradient, y, X, S, beta, wt, ltau, M, 
       iter <- iter+1
 
       #Prepare to iterate conjugate gradient descent:
-      f.outer <- objective(logV, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, M=M)
+      f.outer <- objective(y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, M=M, logV=logV)
       f.old <- Inf
       t <- 1
       conv.inner <- FALSE
@@ -43,7 +43,7 @@ conjugate.gradient <- function(objective, gradient, y, X, S, beta, wt, ltau, M, 
       while(f.new < f.old && !converged && !conv.inner && i<(r*(r+1)/2 - 1)) {
         i <- i+1
 
-        dir.new <- gradient(logV, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, M=M)
+        dir.new <- gradient(y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, M=M, logV=logV)
         dir.new <- dir.new / sqrt(sum(dir.new^2))
 
         #First iteration, ignore conjugacy - thereafter, use it.
@@ -55,15 +55,21 @@ conjugate.gradient <- function(objective, gradient, y, X, S, beta, wt, ltau, M, 
           step <- dir.new + conj * s.old
         }
 
+        #M.step <- step[1:r]
+        #logV.step <- tail(step, length(step) - r)
+        logV.step <- step
+
         #Find the optimal step size
         #Backtracking: stop when the loss function is majorized
-        f.proposed <- objective(logV + t*step, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, M=M)
-        # condition <- (f.proposed > f.new - sum((t*step)*dir.new) - 1/(2*t)*sum((t*step)^2))[1]
+        #f.proposed <- objective(M=M + t*M.step, logV=logV + t*logV.step, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau)
+        f.proposed <- objective(logV=logV + t*logV.step, y=y, X=X, S=S, beta=beta, M=M, wt=wt, ltau=ltau)
+        #condition <- (f.proposed > f.new - sum((t*step)*dir.new) - 1/(2*t)*sum((t*step)^2))[1]
         condition <- (f.proposed > f.new)
         while(condition && t > .Machine$double.eps) {
           t = 0.5*t
-          f.proposed <- objective(logV + t*step, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, M=M)
-          # condition = (f.proposed > f.new - sum((t*step)*dir.new) - 1/(2*t)*sum((t*step)^2))[1]
+          #f.proposed <- objective(M=M + t*M.step, logV=logV + t*logV.step, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau)
+          f.proposed <- objective(logV=logV + t*logV.step, y=y, X=X, S=S, beta=beta, M=M, wt=wt, ltau=ltau)
+          #condition = (f.proposed > f.new - sum((t*step)*dir.new) - 1/(2*t)*sum((t*step)^2))[1]
           condition <- (f.proposed > f.new)
 
           #This is the final stopping rule: t gets so small that 1/(2*t) is Inf
@@ -74,7 +80,8 @@ conjugate.gradient <- function(objective, gradient, y, X, S, beta, wt, ltau, M, 
         }
 
         #Find the optimal step
-        logV.proposed <- logV + t*step
+        #M.proposed <- M + t*M.step
+        logV.proposed <- logV + t*logV.step
 
         #Make t a little bigger so next iteration has option to make larger step:
         t = t / 0.5 / 0.5
@@ -85,6 +92,7 @@ conjugate.gradient <- function(objective, gradient, y, X, S, beta, wt, ltau, M, 
 
         #Only save the new parameters if they've decreased the loss function
         if (f.proposed < f.old) {
+          #M <- M.proposed
           logV <- logV.proposed
         }
         f.old <- f.new
@@ -102,5 +110,6 @@ conjugate.gradient <- function(objective, gradient, y, X, S, beta, wt, ltau, M, 
     finished <- TRUE
   }
 
-  list(par=logV, value=f.new)
+  #list(M=M, logV=logV, value=f.new)
+  list(logV=logV, value=f.new)
 }
