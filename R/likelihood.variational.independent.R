@@ -17,8 +17,13 @@ likelihood.bound.indep <- function(M, log.diagV, ltau, y, X, S, beta, wt) {
 }
 
 
-likelihood.bound.diagV <- function(log.diagV, M, ltau, y, X, S, beta, wt) {
-  likelihood.bound.indep(M, log.diagV, ltau, y, X, S, beta, wt)
+likelihood.bound.diagV <- function(logV, M, ltau, y, X, S, beta, wt) {
+  likelihood.bound.indep(M, logV, ltau, y, X, S, beta, wt)
+}
+
+
+likelihood.bound.variational <- function(M, logV, ltau, y, X, S, beta, wt) {
+  likelihood.bound.indep(M, logV, ltau, y, X, S, beta, wt)
 }
 
 

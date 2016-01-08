@@ -35,7 +35,7 @@ score.fin <- function(par, y, X, S, wt, V) {
   grad.M <- as.vector(t(S) %*% Diagonal(x=wt) %*% (y - mu*v)) - tau*M
 
   # Gradient w.r.t. ltau:
-  grad.ltau <- -tau/2 *sum(M^2) + ncol(S)/2
+  grad.ltau <- -tau/2 * (sum(M^2) + sum(diag(V))) + r/2
 
   -c(grad.beta, grad.M, grad.ltau)
 }
@@ -76,18 +76,59 @@ score.logV <- function(logV, y, X, S, beta, wt, ltau, M) {
   diag(V) <- diagV
 
   eta <- as.vector(X %*% beta + S %*% M)
+  mu <- exp(eta)
   r <- ncol(S)
   tau <- exp(ltau)
-  mu <- exp(eta)
 
   cholV <- chol(V)
   cholV <- t(as.matrix(cholV))
   v <- exp(VariationalVar(cholV, S) / 2)
 
+  # The covariance matrix is symmetric, and we use only the upper-triangular part.
+  # So off-diagonal entries should count double to account for the entry across the diagonal.
+  symmetrizer <- matrix(2, r, r)
+  diag(symmetrizer) <- 1
+
   grad <- VariationalScoreLogV(mu, wt, tau, v, as.matrix(V), S)
-  grad <- grad + DerLogDetChol(cholV) / 2;
+  grad <- grad + DerLogDetChol(cholV) * symmetrizer * V;
   grad[indx]
 }
+
+
+score.va <- function(M, logV, y, X, S, beta, wt, ltau) {
+  #r <- ncol(S)
+  #M <- par[1:r]
+  #logV <- tail(par, length(par) - r)
+
+  V <- matrix(0, ncol(S), ncol(S))
+  indx <- which(!lower.tri(V))
+  V[indx] <- exp(logV)
+  diagV <- diag(V)
+  V <- V + t(V)
+  diag(V) <- diagV
+
+  eta <- as.vector(X %*% beta + S %*% M)
+  mu <- exp(eta)
+  tau <- exp(ltau)
+
+  cholV <- chol(V)
+  cholV <- t(as.matrix(cholV))
+  v <- exp(VariationalVar(cholV, S) / 2)
+
+
+  # Gradient w.r.t. M:
+  grad.M <- as.vector(t(S) %*% Diagonal(x=wt) %*% (y - mu*v)) - tau*M
+
+  # The covariance matrix is symmetric, and we use only the upper-triangular part.
+  # So off-diagonal entries should count double to account for the entry across the diagonal.
+  symmetrizer <- matrix(2, r, r)
+  diag(symmetrizer) <- 1
+
+  grad <- VariationalScoreLogV(mu, wt, tau, v, as.matrix(V), S)
+  grad <- grad + DerLogDetChol(cholV) * symmetrizer * V;
+  c(grad.M, grad[indx])
+}
+
 
 score.logV.rev <- function(logV, y, X, S, beta, wt, ltau, M) {
   -score.logV(logV, y, X, S, beta, wt, ltau, M)

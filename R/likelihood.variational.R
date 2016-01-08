@@ -38,6 +38,22 @@ likelihood.bound.logV <- function(logV, y, X, S, beta, wt, ltau, M) {
 }
 
 
+likelihood.bound.va <- function(y, X, S, beta, wt, ltau, M, logV) {
+  #r <- ncol(S)
+  #M <- par[1:r]
+  #logV <- tail(par, length(par) - r)
+
+  V <- matrix(0, ncol(S), ncol(S))
+  indx <- which(!lower.tri(V))
+  V[indx] <- exp(logV)
+  diagV <- diag(V)
+  V <- V + t(V)
+  diag(V) <- diagV
+
+  likelihood.bound(y, X, S, beta, wt, ltau, M, V)
+}
+
+
 likelihood.bound.fin <- function(par, y, X, S, wt, V) {
   p <- ncol(X)
   r <- ncol(S)
