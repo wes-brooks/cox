@@ -1,11 +1,11 @@
 #--------------------------
 # Calculate the (negative) marginal log-likelihod
-marginal.laplace <- function(beta, ltau, y, X, S, u, wt, tol, verbose) {
+marginal.laplace <- function(beta, ltau, y, X, S, wt, tol, verbose) {
   tryCatch( {
     tau <- exp(ltau)
     p <- ncol(X)
     r <- ncol(S)
-    eta <- as.vector(X %*% beta + S %*% u)
+    eta <- as.vector(X %*% beta)
     mu <- exp(eta)
 
     if (verbose) cat("Maximizing joint likelihood for u:")
@@ -27,6 +27,9 @@ marginal.laplace <- function(beta, ltau, y, X, S, u, wt, tol, verbose) {
     }
     u <- pois$coefficients
     if (verbose) cat("done!\n")
+
+    eta <- as.vector(X %*% beta + S %*% u)
+    mu <- exp(eta)
 
     # Calculate the Hessian for the u vector:
     H <- as.matrix(t(S) %*% Diagonal(x=wt * mu) %*% S)
