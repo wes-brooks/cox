@@ -37,6 +37,8 @@ cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Ma
 
   # Interpret the initial estimates
   beta <- initial$beta
+  #V <- matrix(min(diagV/100), r, r)
+  #diag(V) <- initial$diagV
   V <- diag(initial$diagV)
   ltau <- initial$ltau
   tau <- exp(ltau)
@@ -51,11 +53,17 @@ cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Ma
 
     # Estimate V by conjugate gradient descent
     indx <- which(!lower.tri(V))
-    result <- conjugate.gradient(logV=log(V)[indx], objective=likelihood.bound.logV, gradient=score.logV, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, M=M, tol=tol)
-    # result <- conjugate.gradient(logV=result$par, objective=likelihood.bound.logV, gradient=score.logV.rev, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, M=M, tol=tol)
+
+    result <- conjugate.gradient(logV=log(V)[indx], objective=likelihood.bound.logV, gradient=score.logV, y=y, X=X, S=S, beta=beta, M=M, wt=wt, ltau=ltau, tol=tol)
+    #result <- conjugate.gradient(M=M, logV=log(V)[indx], objective=likelihood.bound.va, gradient=score.va, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, tol=tol)
+    #result <- optim(c(M, log(V)[indx]), fn=likelihood.bound.va, gr=score.va, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, method="BFGS")
 
     # Recover the variance estimate of the random effects from the logged upper triangle
-    logV <- result$par
+    #M <- result$M
+    logV <- result$logV
+
+    #M <- result$par[1:r]
+    #logV <- tail(result$par, length(result$par) - r)
     V <- matrix(0, r, r)
     V[indx] <- exp(logV)
     diagV <- diag(V)
@@ -67,21 +75,29 @@ cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Ma
     cholV <- as.matrix(t(chol(V)))
     v <- exp(VariationalVar(cholV, S) / 2)
     pseudoCovar <- rbind(cbind(X, S), cbind(Matrix(0, length(M), p),  sqrt(tau/2) * diag(r)))
+    #m <- as.vector(S %*% M)
+    #pseudoCovar <- X
     converged <- FALSE
     norm.old <- sum(beta^2)
     while(!converged) {
       z <- eta + (y / v - mu) / mu
       pseudodata <- c(z, rep(0, length(M)))
       pois.model <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v, rep(1, r)))
-
       eta <- cbind(X, S) %*% pois.model$coefficients
+
+      #z <- eta - m + (y / v - mu) / mu
+      #pseudodata <- z
+      #pois <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v))
+      #eta <- m + as.vector(X %*% pois$coefficients)
+
       mu <- exp(eta)
 
       if (verbose) cat(".")
-      norm.new <- sum(pois.model$coefficients^2)
+      norm.new <- sum(pois$coefficients^2)
       if (abs(norm.new - norm.old) < tol * (norm.old + tol)) converged <- TRUE
       norm.old <- norm.new
     }
+    #beta <- pois$coefficients
     beta <- pois.model$coefficients[1:p]
     M <- tail(pois.model$coefficients, r)
     ltau <- log(r) - log(sum(M^2) + sum(diag(V)))
@@ -90,8 +106,8 @@ cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Ma
 
     # Check for convergence
     lik <- likelihood.bound(y, X, S, beta, wt, ltau, M, V)
-    if (verbose)cat(paste("Checking final convergence criterion:\n likelihood=", round(lik, 3), "\n convergence criterion=", round(abs(lik - lik.old) / (tol * (tol + abs(lik.old))) / 1000, 3), "\n"))
-    if (abs(lik - lik.old) / 1000 < tol * (tol + abs(lik.old))) {
+    if (verbose)cat(paste("Checking final convergence criterion:\n likelihood=", round(lik, 3), "\n convergence criterion=", round(abs(lik - lik.old) / (tol * (tol + abs(lik.old))), 3), "\n"))
+    if (abs(lik - lik.old) < tol * (tol + abs(lik.old))) {
       conv.outer <- TRUE
     } else lik.old <- lik
   }
