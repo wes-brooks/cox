@@ -25,10 +25,16 @@ NumericVector VariationalVar(const Eigen::MatrixXd cholV, const Eigen::MatrixXd 
 NumericVector VariationalVarIndep(const Eigen::VectorXd diagV, const Eigen::MatrixXd S)
 {
   int n = S.rows();
+  int p = S.cols();
   NumericVector v(n);
 
   for (int i=0; i<n; i++)
-    v(i) = (S.row(i).array().pow(2) * diagV.array()).sum();
+  {
+    v(i) = 0;
+
+    for (int j=0; j<p; j++)
+      v(i) += pow(S.row(i)(j), 2) * diagV(j);
+  }
 
   return v;
 }
@@ -76,7 +82,7 @@ Eigen::MatrixXd VariationalScoreLogV(const Eigen::VectorXd mu, const Eigen::Vect
   for (int i=0; i<p; i++)
     ones.diagonal()(i) = 1;
 
-  grad = grad.array() * V.array() + ones.array();
+  grad = grad.array() * V.array() * ones.array();
   grad *= 0.5;
 
   return grad;

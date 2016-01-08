@@ -9,10 +9,11 @@ score.diagV <- function(log.diagV, M, ltau, y, X, S, beta, wt) {
 
   v <- exp(VariationalVarIndep(diagV, S) / 2)
 
-  grad.logV <- -as.vector(t(S^2) %*% as.matrix(wt * mu * v))*diagV
-  grad.logV <- grad.logV + 1
-  grad.logV <- grad.logV - tau*diagV # D_V
-  grad.logV <- grad.logV + DerLogDetCholIndep(diagV)
+  grad.logV <- -as.vector(t(S^2) %*% as.matrix(wt * mu * v))*diagV / 2
+  #grad.logV <- grad.logV + 1
+  grad.logV <- grad.logV - tau*diagV / 2 # D_V
+  #grad.logV <- grad.logV + DerLogDetCholIndep(diagV)
+  grad.logV <- grad.logV + 1/2
 
   grad.logV / 2
 }
@@ -36,11 +37,12 @@ score.fin.indep <- function(par, y, X, S, wt) {
 
   v <- exp(VariationalVarIndep(diagV, S) / 2)
 
-  grad.logV <- -as.vector(t(S^2) %*% as.matrix(wt * mu * v))*diagV
-  grad.logV <- grad.logV + 1
-  grad.logV <- grad.logV - tau*diagV
-  grad.logV <- grad.logV + DerLogDetCholIndep(diagV)
-  grad.logV <- grad.logV / 2
+  grad.logV <- -as.vector(t(S^2) %*% as.matrix(wt * mu * v))*diagV / 2
+  #grad.logV <- grad.logV + 1
+  grad.logV <- grad.logV - tau*diagV / 2
+  grad.logV <- grad.logV + 1/2
+  #grad.logV <- grad.logV + DerLogDetCholIndep(diagV)
+  #grad.logV <- grad.logV / 2
 
   # Now gradient w.r.t. beta:
   grad.beta <- as.vector(t(X) %*% Diagonal(x=wt) %*% (y - mu*v))
@@ -49,7 +51,7 @@ score.fin.indep <- function(par, y, X, S, wt) {
   grad.M <- as.vector(t(S) %*% Diagonal(x=wt) %*% (y - mu*v)) - tau*M
 
   # Gradient w.r.t. ltau:
-  grad.ltau <- -tau/2 *sum(M^2) + ncol(S)/2
+  grad.ltau <- -tau/2 * (sum(M^2) + sum(diagV)) + r/2
 
   -c(grad.beta, grad.M, grad.logV, grad.ltau)
 }
