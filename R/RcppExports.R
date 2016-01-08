@@ -9,6 +9,18 @@ DerLogDetCholIndep <- function(diagV) {
     .Call('cox_DerLogDetCholIndep', PACKAGE = 'cox', diagV)
 }
 
+DerLogDetChol3 <- function(L) {
+    .Call('cox_DerLogDetChol3', PACKAGE = 'cox', L)
+}
+
+DerLogDetCholTau <- function(L) {
+    .Call('cox_DerLogDetCholTau', PACKAGE = 'cox', L)
+}
+
+DerLogDetCholBeta <- function(L, S, X, beta, u, wt) {
+    .Call('cox_DerLogDetCholBeta', PACKAGE = 'cox', L, S, X, beta, u, wt)
+}
+
 #' @export
 LogDetDerChol <- function(L, S, X, mu, wt, tau) {
     .Call('cox_LogDetDerChol', PACKAGE = 'cox', L, S, X, mu, wt, tau)
