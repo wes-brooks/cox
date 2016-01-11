@@ -59,38 +59,6 @@ Eigen::VectorXd DerLogDetCholIndep(const Eigen::VectorXd diagV)
 
 
 // [[Rcpp::export]]
-Eigen::VectorXd DerLogDetChol3(const Eigen::MatrixXd L)
-{
-  int r = L.cols();
-  int size = r * (r+1) / 2;
-  Eigen::MatrixXd Li = L.inverse();
-  Eigen::VectorXd D(size);
-  D.setConstant(0);
-
-  int indx = 0;
-  for (int j=0; j<r; j++)
-  {
-    for (int k=j; k<r; k++)
-    {
-      D(indx) += pow(Li(k, j), 2) / 2;
-    }
-    indx += 1;
-
-    for (int i=j+1; i<r; i++)
-    {
-      for (int k=i; k<r; k++)
-        D(indx) += Li(k, i) * Li(k, j);
-
-      indx += 1;
-    }
-  }
-
-  return(D);
-}
-
-
-
-// [[Rcpp::export]]
 double DerLogDetCholTau(const Eigen::MatrixXd L)
 {
   int r = L.cols();
@@ -106,31 +74,6 @@ double DerLogDetCholTau(const Eigen::MatrixXd L)
 
   return(result);
 }
-
-//
-//
-// DerLogDetCholBeta <- function(P, S, X, beta, u, wt) {
-//   L <- t(chol(P))
-//   Li <- solve(L)
-//   r <- ncol(P)
-//   p <- ncol(X)
-//   n <- nrow(X)
-//   D <- matrix(0, p, r)
-//
-//   mu <- exp(X %*% beta + S %*% u)
-//
-//
-//   for (j in 1:r) {
-//     AS <- vector()
-//     for (i in 1:n)
-//       AS <- c(AS, wt[i] * mu[i] * sum(Li[j, 1:j] * S[i, 1:j])^2)
-//
-//
-//       D[,j] <- L[j,j] * apply(X, 2, function(z) sum(z * AS) / 2)
-//   }
-//
-//   apply(D, 1, function(z) sum(z / diag(L)))
-// }
 
 
 // [[Rcpp::export]]
@@ -171,22 +114,3 @@ Eigen::VectorXd DerLogDetCholBeta(const Eigen::MatrixXd L, const Eigen::MatrixXd
 
   return(result);
 }
-
-//
-// #----------------------------------
-// # Now want derivative of log determinant of Cholesky factor w.r.t. parameters beta and tau that appear in the original matrix:
-// # P <- tau*I_r + t(S) %*% diag(mu*wt) %*% S:
-//
-//
-// DP.Dbeta <- array(data=0, dim=c(r,r,p))
-// for (j in 1:p) {
-//   DP.Dbeta[,,j] <- t(S) %*% diag(mu*wt*X[,j]) %*% S
-// }
-//
-// D2 <- rep(0, p)
-// for (j in 1:p) {
-//   D2[j] <- sum(D * DP.dbeta[,,j])
-// }
-//
-//
-// Dtau <- sum(diag(D))
