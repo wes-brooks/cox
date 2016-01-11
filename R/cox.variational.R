@@ -11,6 +11,7 @@
 #' @param beta.start starting values for iteration to estimate the fixed effect coefficients
 #' @param tol tolerance for judging convergence of the algorithm
 #' @param verbose logical indicating whether to write detailed progress reports to standard output
+#' @param hess logical indicating whether to estimate the Hessian matrix
 #'
 #' @return list of results containing the following elements:
 #'
@@ -27,7 +28,7 @@
 #' \code{neg.log.lik}: negative of the variational lower bound on the marginal log-likelihood at convergence
 #'
 #' @export
-cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Machine$double.eps), verbose=TRUE) {
+cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Machine$double.eps), verbose=TRUE, hess=TRUE) {
   r <- ncol(S)
   p <- ncol(X)
   n <- nrow(X)
@@ -54,42 +55,66 @@ cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Ma
     # Estimate V by conjugate gradient descent
     indx <- which(!lower.tri(V))
 
-    result <- conjugate.gradient(logV=log(V)[indx], objective=likelihood.bound.logV, gradient=score.logV, y=y, X=X, S=S, beta=beta, M=M, wt=wt, ltau=ltau, tol=tol)
-    #result <- conjugate.gradient(M=M, logV=log(V)[indx], objective=likelihood.bound.va, gradient=score.va, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, tol=tol)
-    #result <- optim(c(M, log(V)[indx]), fn=likelihood.bound.va, gr=score.va, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, method="BFGS")
+    if (verbose) cat("Making variational approximation... ")
+    ll.old <- Inf
+    conv <- FALSE
+    while (!conv) {
 
-    # Recover the variance estimate of the random effects from the logged upper triangle
-    #M <- result$M
-    logV <- result$logV
+      result <- conjugate.gradient(logV=log(V)[indx], objective=likelihood.bound.logV, gradient=score.logV, y=y, X=X, S=S, beta=beta, M=M, wt=wt, ltau=ltau, tol=tol)
+      #result <- conjugate.gradient(M=M, logV=log(V)[indx], objective=likelihood.bound.va, gradient=score.va, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, tol=tol)
+      #result <- optim(c(M, log(V)[indx]), fn=likelihood.bound.va, gr=score.va, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, method="BFGS")
 
-    #M <- result$par[1:r]
-    #logV <- tail(result$par, length(result$par) - r)
-    V <- matrix(0, r, r)
-    V[indx] <- exp(logV)
-    diagV <- diag(V)
-    V <- V + t(V)
-    diag(V) <- diagV
+      # Recover the variance estimate of the random effects from the logged upper triangle
+      #M <- result$M
+      logV <- result$logV
 
-    # Holding V fixed, estimate M, beta, and tau by iteratively reweighted least squares
-    if (verbose) cat("Holding V fixed to estimate M, tau, and beta")
-    cholV <- as.matrix(t(chol(V)))
-    v <- exp(VariationalVar(cholV, S) / 2)
-    pseudoCovar <- rbind(cbind(X, S), cbind(Matrix(0, length(M), p),  sqrt(tau/2) * diag(r)))
-    #m <- as.vector(S %*% M)
-    #pseudoCovar <- X
+      V <- matrix(0, r, r)
+      V[indx] <- exp(logV)
+      diagV <- diag(V)
+      V <- V + t(V)
+      diag(V) <- diagV
+
+      # Holding V fixed, estimate M, beta, and tau by iteratively reweighted least squares
+      cholV <- as.matrix(t(chol(V)))
+      v <- exp(VariationalVar(cholV, S) / 2)
+
+      m <- as.vector(X %*% beta)
+      pseudoCovar <- rbind(S, sqrt(tau/2) * diag(r))
+      z <- eta - m + (y / v - mu) / mu
+      pseudodata <- c(z, rep(0, length(M)))
+      pois <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v, rep(1, r)))
+      M <- pois$coefficients
+      eta <- m + as.vector(S %*% M)
+      mu <- exp(eta)
+
+      # Estimate log(tau)
+      ltau <- log(r) - log(sum(M^2) + sum(diag(V)))
+      tau <- exp(ltau)
+
+      # Check for convergence
+      ll <- likelihood.bound(y, X, S, beta, wt, ltau, M, V)
+      if (verbose) cat(paste("Checking convergence:\n Negative log-likelihood = ", round(ll, 3), "\n Convergence criterion = ", round(abs(ll - ll.old) / (tol * (tol + abs(ll.old))), 3), "\n\n"))
+      if (abs(ll - ll.old) < tol * (tol + abs(ll.old)) | ll > ll.old) {
+        conv <- TRUE
+      } else ll.old <- ll
+    }
+
+    #pseudoCovar <- rbind(cbind(X, S), cbind(Matrix(0, length(M), p),  sqrt(tau/2) * diag(r)))
+    m <- as.vector(S %*% M)
+    pseudoCovar <- X
     converged <- FALSE
     norm.old <- sum(beta^2)
     while(!converged) {
-      z <- eta + (y / v - mu) / mu
-      pseudodata <- c(z, rep(0, length(M)))
-      pois.model <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v, rep(1, r)))
-      eta <- cbind(X, S) %*% pois.model$coefficients
+      #z <- eta + (y / v - mu) / mu
+      #pseudodata <- c(z, rep(0, length(M)))
+      #pois.model <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v, rep(1, r)))
+      #eta <- cbind(X, S) %*% pois.model$coefficients
+      #mu <- exp(eta)
 
-      #z <- eta - m + (y / v - mu) / mu
-      #pseudodata <- z
-      #pois <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v))
-      #eta <- m + as.vector(X %*% pois$coefficients)
-
+      z <- eta - m + (y / v - mu) / mu
+      pseudodata <- z
+      pois <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v))
+      eta <- m + as.vector(X %*% pois$coefficients)
       mu <- exp(eta)
 
       if (verbose) cat(".")
@@ -97,21 +122,21 @@ cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Ma
       if (abs(norm.new - norm.old) < tol * (norm.old + tol)) converged <- TRUE
       norm.old <- norm.new
     }
-    #beta <- pois$coefficients
-    beta <- pois.model$coefficients[1:p]
-    M <- tail(pois.model$coefficients, r)
-    ltau <- log(r) - log(sum(M^2) + sum(diag(V)))
-    tau <- exp(ltau)
+    beta <- pois$coefficients
+    #beta <- pois.model$coefficients[1:p]
+    #M <- tail(pois.model$coefficients, r)
+
     if (verbose) cat(paste("done!\n beta = ", paste(round(beta, 3), collapse=", "), "\n ltau = ", round(ltau, 3), "\n", sep=''))
 
     # Check for convergence
     lik <- likelihood.bound(y, X, S, beta, wt, ltau, M, V)
     if (verbose)cat(paste("Checking final convergence criterion:\n likelihood=", round(lik, 3), "\n convergence criterion=", round(abs(lik - lik.old) / (tol * (tol + abs(lik.old))), 3), "\n"))
-    if (abs(lik - lik.old) < tol * (tol + abs(lik.old))) {
+    if (abs(lik - lik.old) < tol * (tol + abs(lik.old)) | lik > lik.old) {
       conv.outer <- TRUE
     } else lik.old <- lik
   }
 
-  res.fin <- optimHess(c(beta, M, ltau), fn=likelihood.bound.fin, gr=score.fin, y=y, X=X, S=S, V=V, wt=wt)
-  list(beta=beta, M=M, V=V, ltau=ltau, hessian=res.fin, neg.loglik=lik)
+  out <- list(beta=beta, M=M, V=V, ltau=ltau, neg.loglik=lik)
+  if (hess) out$hessian <- optimHess(c(beta, M, ltau), fn=likelihood.bound.fin, gr=score.fin, y=y, X=X, S=S, V=V, wt=wt)
+  out
 }

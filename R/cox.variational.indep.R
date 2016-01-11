@@ -87,56 +87,78 @@ cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sq
   diagV <- rep(1, r)
   log.diag.V <- log(diagV)
 
-
   # Iterate and maximize the variational approximation to the marginal log-likelihood
   lik.old <- Inf
   conv.outer <- FALSE
   while (!conv.outer) {
 
-    # Estimate V (update the variational approximation and maximize it)
-    #diagV <- newton.indep(y, eta, S, wt, ltau, diagV)
     if (verbose) cat("Estimating variances for the variational approximation... ")
-    # res <- optim(log.diag.V, fn=likelihood.bound.diagV, gr=score.diagV, y=y, M=M, X=X, S=S, beta=beta, wt=wt, ltau=ltau, control=list(reltol=.Machine$double.eps), method="BFGS")
-    #res <- conjugate.gradient(log.diag.V, objective=likelihood.bound.diagV, gradient=score.diagV, y=y, M=M, X=X, S=S, beta=beta, wt=wt, ltau=ltau, tol=tol)
-    #res <- optim(c(M, log.diag.V), fn=likelihood.bound.variational, gr=score.variational, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, method="BFGS")
-    #res <- conjugate.gradient(M=M, logV=log.diag.V, objective=likelihood.bound.variational, gradient=score.variational, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, tol=tol)
-    res <- conjugate.gradient(M=M, logV=log.diag.V, objective=likelihood.bound.diagV, gradient=score.diagV, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, tol=tol)
-    #M <- res$M
-    log.diag.V <- res$logV
-    diagV <- exp(log.diag.V)
-    if (verbose) cat("done!\n")
-
-    # Estimate M, beta, and tau for fixed V
-    if (verbose) cat("Maximizing variational likelihood for beta and M: ")
-
-    v <- exp(VariationalVarIndep(diagV, S) / 2)
-
-    #m <- as.vector(S %*% M)
-    #pseudoCovar <- X
-    pseudoCovar <- rbind(cbind(X, S), cbind(Matrix(0, length(M), p),  sqrt(tau/2) * diag(r)))
     converged <- FALSE
+    ll.old <- Inf
     while(!converged) {
-      #z <- eta - m + (y / v - mu) / mu
-      #pseudodata <- z
-      #pois <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v))
-      #eta <- m + as.vector(X %*% pois$coefficients)
+      # Estimate V (update the variational approximation and maximize it)
+      #diagV <- newton.indep(y, eta, S, wt, ltau, diagV)
+      # res <- optim(log.diag.V, fn=likelihood.bound.diagV, gr=score.diagV, y=y, M=M, X=X, S=S, beta=beta, wt=wt, ltau=ltau, control=list(reltol=.Machine$double.eps), method="BFGS")
+      #res <- conjugate.gradient(log.diag.V, objective=likelihood.bound.diagV, gradient=score.diagV, y=y, M=M, X=X, S=S, beta=beta, wt=wt, ltau=ltau, tol=tol)
+      #res <- optim(c(M, log.diag.V), fn=likelihood.bound.variational, gr=score.variational, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, method="BFGS")
+      #res <- conjugate.gradient(M=M, logV=log.diag.V, objective=likelihood.bound.variational, gradient=score.variational, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, tol=tol)
+      res <- conjugate.gradient(M=M, logV=log.diag.V, objective=likelihood.bound.diagV, gradient=score.diagV, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, tol=tol)
+      #M <- res$M
+      log.diag.V <- res$logV
+      diagV <- exp(log.diag.V)
+      if (verbose) cat("done!\n")
 
-      z <- eta + (y / v - mu) / mu
+      # Estimate M
+      v <- exp(VariationalVarIndep(diagV, S) / 2)
+      m <- as.vector(X %*% beta)
+      pseudoCovar <- S
+      pseudoCovar <- rbind(S, sqrt(tau/2) * diag(r))
+      z <- eta - m + (y / v - mu) / mu
       pseudodata <- c(z, rep(0, length(M)))
       pois <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v, rep(1, r)))
-      eta <- as.vector(cbind(X, S) %*% pois$coefficients)
-
+      M <- pois$coefficients
+      eta <- m + as.vector(S %*% M)
       mu <- exp(eta)
+
+      #Estimate tau
+      ltau <- log(ncol(S)) - log(sum(M^2) + sum(diagV))
+      tau <- exp(ltau)
+
+      # Check for convergence
+      ll <- likelihood.bound.indep(M, log.diag.V, ltau, y, X, S, beta, wt)
+
+      if (verbose) cat(paste("Checking convergence:\n Negative log-likelihood = ", round(ll, 3), "\n Convergence criterion = ", round(abs(ll - ll.old) / (tol * (tol + abs(ll.old))), 3), "\n\n"))
+      if (abs(ll - ll.old) < tol * (tol + abs(ll.old)) | ll > ll.old) {
+        converged <- TRUE
+      } else ll.old <- ll
+    }
+
+    #pseudoCovar <- rbind(cbind(X, S), cbind(Matrix(0, length(M), p),  sqrt(tau/2) * diag(r)))
+    pseudoCovar <- X
+    m <- as.vector(S %*% M)
+    converged <- FALSE
+    while(!converged) {
+      z <- eta - m + (y / v - mu) / mu
+      pseudodata <- z
+      pois <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v))
+      eta <- m + as.vector(X %*% pois$coefficients)
+      mu <- exp(eta)
+
+      #z <- eta + (y / v - mu) / mu
+      #pseudodata <- c(z, rep(0, length(M)))
+      #pois <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v, rep(1, r)))
+      #eta <- as.vector(cbind(X, S) %*% pois$coefficients)
+      #mu <- exp(eta)
 
       norm.new <- sum(pois$coefficients^2)
       if (abs(norm.new - norm.old) < tol * (norm.old + tol)) converged <- TRUE
       norm.old <- norm.new
       if (verbose) cat(".")
     }
-    #beta <- pois$coefficients
-    beta <- pois$coefficients[1:ncol(X)]
-    M <- tail(pois$coefficients, ncol(S))
-    ltau <- log(ncol(S)) - log(sum(M^2) + sum(diagV))
+    beta <- pois$coefficients
+    #beta <- pois$coefficients[1:ncol(X)]
+    #M <- tail(pois$coefficients, ncol(S))
+
     tau <- exp(ltau)
     if (verbose) cat(" done!\n")
 
@@ -145,7 +167,7 @@ cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sq
 
     if (verbose) cat(paste(" ltau=", round(ltau, 3), "\n beta=", paste(round(beta, 3), collapse=', '), '\n\n', sep=''))
     if (verbose) cat(paste("Checking convergence:\n Negative log-likelihood = ", round(lik, 3), "\n Convergence criterion = ", round(abs(lik - lik.old) / (tol * (tol + abs(lik.old))), 3), "\n\n"))
-    if (abs(lik - lik.old) < tol * (tol + abs(lik.old))) {
+    if (abs(lik - lik.old) < tol * (tol + abs(lik.old)) | lik > lik.old) {
       conv.outer <- TRUE
     } else lik.old <- lik
   }
