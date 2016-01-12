@@ -9,6 +9,7 @@
 #' @param S design matrix for the spatial random effects
 #' @param wt vector of observation weights
 #' @param beta.start initial values of the fixed effect coefficients (used for iterative estimation scheme)
+#' @param tau.start initial value of the precision of the random effects
 #' @param tol tolerance for judging convergence of the algorithm
 #' @param verbose if \code{TRUE}, the algorithm prints verbose updates on its progess
 #' @export
@@ -30,7 +31,7 @@ cox.laplace <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Machin
   # res <- optim(par=c(beta, ltau), fn=marginal.joint, y=y, X=X, S=S, wt=wt, verbose=verbose, method="BFGS")
   #res <- optim(ltau, fn=marginal.ltau, y=y, X=X, S=S, beta=beta, wt=wt, verbose=verbose, tol=tol)
   #res <- optim(par, fn=marginal.joint, gr=gradient.joint, y=y, X=X, S=S, wt=wt, verbose=verbose, tol=tol, method="BFGS")
-  res <- optim(par, fn=marginal.joint, y=y, X=X, S=S, wt=wt, verbose=verbose, tol=tol, method="BFGS")
+  res <- optim(par, fn=likelihood.joint, y=y, X=X, S=S, wt=wt, verbose=verbose, tol=tol, method="BFGS")
   beta <- res$par[1:p]
   tau <- tail(res$par, 1)
 

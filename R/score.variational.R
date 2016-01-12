@@ -29,10 +29,10 @@ score.fin <- function(par, y, X, S, wt, V) {
   v <- exp(VariationalVar(cholV, S) / 2)
 
   # Gradient w.r.t. beta:
-  grad.beta <- as.vector(t(X) %*% Diagonal(x=wt) %*% (y - mu*v))
+  grad.beta <- as.vector(t(X) %*% Matrix::Diagonal(x=wt) %*% (y - mu*v))
 
   # Gradient w.r.t. M:
-  grad.M <- as.vector(t(S) %*% Diagonal(x=wt) %*% (y - mu*v)) - tau*M
+  grad.M <- as.vector(t(S) %*% Matrix::Diagonal(x=wt) %*% (y - mu*v)) - tau*M
 
   # Gradient w.r.t. ltau:
   grad.ltau <- -tau/2 * (sum(M^2) + sum(diag(V))) + r/2
@@ -42,25 +42,19 @@ score.fin <- function(par, y, X, S, wt, V) {
 
 
 
-#' Gradient of the lower likelihood bound:
-score <- function(y, X, S, beta, wt, ltau, M, V) {
-  eta <- as.vector(X %*% beta + S %*% M)
-  r <- ncol(S)
-  tau <- exp(ltau)
-  mu <- exp(eta)
-
-  cholV <- chol(V)
-  cholV <- t(as.matrix(cholV))
-  v <- exp(VariationalVar(cholV, S) / 2)
-
-  grad <- VariationalScore(mu, wt, tau, v, as.matrix(V), S)
-
-  as.vector(grad)
-}
-
-
 #' Gradient of the variational likelihood bound w.r.t. log of covariance matrix
+#'
+#' @param logV logarithm of vectorized upper triangle of the covariance matrix of random-effect coefficients for the variational approximation
+#' @param y vector of Poisson-distributed responses for DWPR
+#' @param X matrix of fixed-effect covariates
+#' @param S matrix of random-effect covariates
+#' @param beta fixed-effect coefficient vector
+#' @param wt vector of observation weights
+#' @param ltau log precision of the random effect coefficients
+#' @param M vector of means of random-effect coefficients for the variational approximation
+#'
 score.logV <- function(logV, y, X, S, beta, wt, ltau, M) {
+  # Recover the covariance matrix of random-effect coefficients from its log upper triangle
   V <- matrix(0, ncol(S), ncol(S))
   indx <- which(!lower.tri(V))
   V[indx] <- exp(logV)
@@ -68,11 +62,13 @@ score.logV <- function(logV, y, X, S, beta, wt, ltau, M) {
   V <- V + t(V)
   diag(V) <- diagV
 
+  # Get linear predictor and means of the response
   eta <- as.vector(X %*% beta + S %*% M)
   mu <- exp(eta)
   r <- ncol(S)
   tau <- exp(ltau)
 
+  # v is the part of the Gaussian MGF that depends on the covariance matrix
   cholV <- chol(V)
   cholV <- t(as.matrix(cholV))
   v <- exp(VariationalVar(cholV, S) / 2)
@@ -82,12 +78,8 @@ score.logV <- function(logV, y, X, S, beta, wt, ltau, M) {
   symmetrizer <- matrix(2, r, r)
   diag(symmetrizer) <- 1
 
+  # Calculate the gradient and return it
   grad <- VariationalScoreLogV(mu, wt, tau, v, as.matrix(V), S)
   grad <- grad + DerLogDetChol(cholV) * symmetrizer * V;
   grad[indx]
-}
-
-#' Negative gradient of variational likelihood bound
-score.logV.rev <- function(logV, y, X, S, beta, wt, ltau, M) {
-  -score.logV(logV, y, X, S, beta, wt, ltau, M)
 }

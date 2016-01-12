@@ -9,6 +9,7 @@
 #' @param S design matrix for the spatial random effects
 #' @param wt vector of observation weights
 #' @param beta.start starting values for iteration to estimate the fixed effect coefficients
+#' @param tau.start initial value of the precision of the random effects
 #' @param tol tolerance for judging convergence of the algorithm
 #' @param verbose logical indicating whether to write detailed progress reports to standard output
 #' @param hess logical indicating whether to estimate the Hessian matrix
