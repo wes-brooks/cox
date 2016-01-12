@@ -18,6 +18,8 @@ cox.laplace(y, X, S, wt, beta.start, tau.start = 100,
 
 \item{beta.start}{initial values of the fixed effect coefficients (used for iterative estimation scheme)}
 
+\item{tau.start}{initial value of the precision of the random effects}
+
 \item{tol}{tolerance for judging convergence of the algorithm}
 
 \item{verbose}{if \code{TRUE}, the algorithm prints verbose updates on its progess}

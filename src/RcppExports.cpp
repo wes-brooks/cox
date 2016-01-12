@@ -28,17 +28,6 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// DerLogDetChol3
-Eigen::VectorXd DerLogDetChol3(const Eigen::MatrixXd L);
-RcppExport SEXP cox_DerLogDetChol3(SEXP LSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type L(LSEXP);
-    __result = Rcpp::wrap(DerLogDetChol3(L));
-    return __result;
-END_RCPP
-}
 // DerLogDetCholTau
 double DerLogDetCholTau(const Eigen::MatrixXd L);
 RcppExport SEXP cox_DerLogDetCholTau(SEXP LSEXP) {
@@ -63,22 +52,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Eigen::VectorXd >::type u(uSEXP);
     Rcpp::traits::input_parameter< const Eigen::VectorXd >::type wt(wtSEXP);
     __result = Rcpp::wrap(DerLogDetCholBeta(L, S, X, beta, u, wt));
-    return __result;
-END_RCPP
-}
-// LogDetDerChol
-NumericVector LogDetDerChol(const Eigen::MatrixXd L, const Eigen::MatrixXd S, const Eigen::MatrixXd X, const Eigen::VectorXd mu, const Eigen::VectorXd wt, double tau);
-RcppExport SEXP cox_LogDetDerChol(SEXP LSEXP, SEXP SSEXP, SEXP XSEXP, SEXP muSEXP, SEXP wtSEXP, SEXP tauSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type L(LSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type S(SSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type wt(wtSEXP);
-    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
-    __result = Rcpp::wrap(LogDetDerChol(L, S, X, mu, wt, tau));
     return __result;
 END_RCPP
 }

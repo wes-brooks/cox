@@ -16,16 +16,30 @@ cox.variational.indep(y, X, S, wt, beta.start, tau.start = 100,
 
 \item{wt}{vector of observation weights}
 
-\item{beta.start}{initial values of the fixed effect coefficients (used for iterative estimation scheme)}
+\item{beta.start}{starting values for iteration to estimate the fixed effect coefficients}
+
+\item{tau.start}{initial value of the precision of the random effects}
 
 \item{tol}{tolerance for judging convergence of the algorithm}
 
-\item{verbose}{if \code{TRUE}, the algorithm prints verbose updates on its progess}
+\item{verbose}{logical indicating whether to write detailed progress reports to standard output}
+
+\item{hess}{logical indicating whether to compute the hessian after convergence (slow)}
 }
 \value{
 list composed of these elements:
 
-\code{beta} estimated vector of regression coefficients
+\code{beta}: estimated vector of fixed effect regression coefficients
+
+\code{M}: estimated mean vector for the posterior of the spatial random effects at the converged value of the variational approximation
+
+\code{diagV}: vector of diagonal entries of the estimated covariance matrix for the posterior of the spatial random effects at convergence of the variational approximation
+
+\code{ltau}: estimated precision component for the spatial random effect
+
+\code{hessian}: estimated hessian matrix for \code{beta}, \code{M}, \code{log(diagV)} and \code{ltau} at convergence (estimated by call to \code{optim})
+
+\code{neg.log.lik}: negative of the variational lower bound on the marginal log-likelihood at convergence
 }
 \description{
 \code{cox.variational.indep} uses a variational approximation to estimate the parameters of a Cox process regression model with spatial random effects.

@@ -18,7 +18,4 @@ which is zero if \code{d>bw} and  \code{(1-(d/bw)^2)^2} otherwise
 \description{
 Calculate weights via the bisquare kernel
 }
-\examples{
-bisquare(c(0, 0.1, -0.1, 3), 1)
-}
 

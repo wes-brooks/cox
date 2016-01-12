@@ -5,7 +5,7 @@
 \title{Estimate the regression parameters of a Cox process model using the variational approximation with unconstrained covariance for the random effects.}
 \usage{
 cox.variational(y, X, S, wt, beta.start, tau.start = 100,
-  tol = sqrt(.Machine$double.eps), verbose = TRUE)
+  tol = sqrt(.Machine$double.eps), verbose = TRUE, hess = TRUE)
 }
 \arguments{
 \item{y}{vector of response data}
@@ -16,11 +16,15 @@ cox.variational(y, X, S, wt, beta.start, tau.start = 100,
 
 \item{wt}{vector of observation weights}
 
-\item{beta.start}{initial values of the fixed effect coefficients (used for iterative estimation scheme)}
+\item{beta.start}{starting values for iteration to estimate the fixed effect coefficients}
+
+\item{tau.start}{initial value of the precision of the random effects}
 
 \item{tol}{tolerance for judging convergence of the algorithm}
 
-\item{verbose}{if \code{TRUE}, the algorithm prints verbose updates on its progess}
+\item{verbose}{logical indicating whether to write detailed progress reports to standard output}
+
+\item{hess}{logical indicating whether to estimate the Hessian matrix}
 }
 \value{
 list of results containing the following elements:

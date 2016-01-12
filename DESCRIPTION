@@ -6,12 +6,10 @@ Date: 2015-11-09
 Author: Wesley Brooks
 Maintainer: Wesley Brooks <wesley.brooks@unsw.edu.au>
 Description: The \pkg{cox} package is used to estimate regression models for the Cox process.
-License: MIT
+License: MIT + file LICENSE
 LazyData: TRUE
 Depends:
-    Matrix,
-    RandomFields,
-    deldir
+    Matrix
 Imports:
     Rcpp (>= 0.12.1),
     RcppEigen
