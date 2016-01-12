@@ -42,8 +42,7 @@ score.fin <- function(par, y, X, S, wt, V) {
 
 
 
-#--------------------------
-# Gradient of the lower likelihood bound:
+#' Gradient of the lower likelihood bound:
 score <- function(y, X, S, beta, wt, ltau, M, V) {
   eta <- as.vector(X %*% beta + S %*% M)
   r <- ncol(S)
@@ -60,13 +59,7 @@ score <- function(y, X, S, beta, wt, ltau, M, V) {
 }
 
 
-#
-# score.V <- function(V, y, X, S, beta, wt, ltau, M) {
-#   score(y, X, S, beta, wt, ltau, M, V)
-# }
-
-
-
+#' Gradient of the variational likelihood bound w.r.t. log of covariance matrix
 score.logV <- function(logV, y, X, S, beta, wt, ltau, M) {
   V <- matrix(0, ncol(S), ncol(S))
   indx <- which(!lower.tri(V))
@@ -94,42 +87,7 @@ score.logV <- function(logV, y, X, S, beta, wt, ltau, M) {
   grad[indx]
 }
 
-
-score.va <- function(M, logV, y, X, S, beta, wt, ltau) {
-  #r <- ncol(S)
-  #M <- par[1:r]
-  #logV <- tail(par, length(par) - r)
-
-  V <- matrix(0, ncol(S), ncol(S))
-  indx <- which(!lower.tri(V))
-  V[indx] <- exp(logV)
-  diagV <- diag(V)
-  V <- V + t(V)
-  diag(V) <- diagV
-
-  eta <- as.vector(X %*% beta + S %*% M)
-  mu <- exp(eta)
-  tau <- exp(ltau)
-
-  cholV <- chol(V)
-  cholV <- t(as.matrix(cholV))
-  v <- exp(VariationalVar(cholV, S) / 2)
-
-
-  # Gradient w.r.t. M:
-  grad.M <- as.vector(t(S) %*% Diagonal(x=wt) %*% (y - mu*v)) - tau*M
-
-  # The covariance matrix is symmetric, and we use only the upper-triangular part.
-  # So off-diagonal entries should count double to account for the entry across the diagonal.
-  symmetrizer <- matrix(2, r, r)
-  diag(symmetrizer) <- 1
-
-  grad <- VariationalScoreLogV(mu, wt, tau, v, as.matrix(V), S)
-  grad <- grad + DerLogDetChol(cholV) * symmetrizer * V;
-  c(grad.M, grad[indx])
-}
-
-
+#' Negative gradient of variational likelihood bound
 score.logV.rev <- function(logV, y, X, S, beta, wt, ltau, M) {
   -score.logV(logV, y, X, S, beta, wt, ltau, M)
 }
