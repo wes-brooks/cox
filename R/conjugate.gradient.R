@@ -16,23 +16,26 @@
 #' @return List consisting of \code{par}, the value of parameters that minimize
 #' the objective function, and \code{value}, the value of the minimized objective
 conjugate.gradient <- function(objective, gradient, y, X, S, beta, wt, ltau, M, logV, verbose=TRUE, tol=sqrt(.Machine$double.eps)) {
-  #Initial parameters:
+
+  # Initial parameters:
   n <- nrow(S)
   r <- ncol(S)
 
+  # Starting values for iteration
   finished <- FALSE
   f.new <- objective(y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, M=M, logV=logV)
   check <- Inf
 
+  # Iterate conjugate gradient until likelihood stops improving
   while(!finished) {
 
-    #These iterations restart conjugacy:
+    # These iterations restart conjugacy:
     converged = FALSE
     iter <- 0
     while (!converged && iter<100) {
       iter <- iter+1
 
-      #Prepare to iterate conjugate gradient descent:
+      # Prepare to iterate conjugate gradient descent:
       f.outer <- objective(y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, M=M, logV=logV)
       f.old <- Inf
       t <- 1
@@ -43,11 +46,12 @@ conjugate.gradient <- function(objective, gradient, y, X, S, beta, wt, ltau, M, 
       while(f.new < f.old && !converged && !conv.inner && i<(r*(r+1)/2 - 1)) {
         i <- i+1
 
+        # Compute the gradient of the likelihood function
         dir.new <- gradient(y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, M=M, logV=logV)
         dir.new <- dir.new / sqrt(sum(dir.new^2))
 
-        #First iteration, ignore conjugacy - thereafter, use it.
-        #step is the vector of the new step (in parameter space)
+        # First iteration ignores conjugacy.
+        # step is the vector of the new step (in parameter space)
         if (i==1) {
           step <- dir.new
         } else {
@@ -55,21 +59,14 @@ conjugate.gradient <- function(objective, gradient, y, X, S, beta, wt, ltau, M, 
           step <- dir.new + conj * s.old
         }
 
-        #M.step <- step[1:r]
-        #logV.step <- tail(step, length(step) - r)
         logV.step <- step
 
-        #Find the optimal step size
-        #Backtracking: stop when the loss function is majorized
-        #f.proposed <- objective(M=M + t*M.step, logV=logV + t*logV.step, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau)
+        # Find the optimal step size via backtracking
         f.proposed <- objective(logV=logV + t*logV.step, y=y, X=X, S=S, beta=beta, M=M, wt=wt, ltau=ltau)
-        #condition <- (f.proposed > f.new - sum((t*step)*dir.new) - 1/(2*t)*sum((t*step)^2))[1]
         condition <- (f.proposed > f.new)
         while(condition && t > .Machine$double.eps) {
           t = 0.5*t
-          #f.proposed <- objective(M=M + t*M.step, logV=logV + t*logV.step, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau)
           f.proposed <- objective(logV=logV + t*logV.step, y=y, X=X, S=S, beta=beta, M=M, wt=wt, ltau=ltau)
-          #condition = (f.proposed > f.new - sum((t*step)*dir.new) - 1/(2*t)*sum((t*step)^2))[1]
           condition <- (f.proposed > f.new)
 
           #This is the final stopping rule: t gets so small that 1/(2*t) is Inf
@@ -79,29 +76,25 @@ conjugate.gradient <- function(objective, gradient, y, X, S, beta, wt, ltau, M, 
           }
         }
 
-        #Find the optimal step
-        #M.proposed <- M + t*M.step
-        logV.proposed <- logV + t*logV.step
+        # Only save the new parameters if they've decreased the loss function
+        if (f.proposed < f.old)
+          logV <- logV + t*logV.step
 
-        #Make t a little bigger so next iteration has option to make larger step:
+        # Make t a little bigger so next iteration has option to make larger step:
         t = t / 0.5 / 0.5
 
-        #save for next iteration:
+        # What's new is old in the next iteration:
         dir.old <- dir.new
         s.old <- step
-
-        #Only save the new parameters if they've decreased the loss function
-        if (f.proposed < f.old) {
-          #M <- M.proposed
-          logV <- logV.proposed
-        }
         f.old <- f.new
         f.new <- f.proposed
 
+        # Check for convergence
         if (verbose) cat(".")
         if ((f.old - f.new) < tol * (tol+abs(f.old))) conv.inner = TRUE
       }
 
+      # Check for final convergence
       if (verbose) cat("done!\n")
       if (verbose) cat(paste("Iteration: ", iter, "; Objective: ", round(f.new, 3), "; Inner iterations: ", i, "\n", sep=""))
       if ((f.outer - f.new) < tol * (tol+abs(f.outer))) converged = TRUE
@@ -110,6 +103,6 @@ conjugate.gradient <- function(objective, gradient, y, X, S, beta, wt, ltau, M, 
     finished <- TRUE
   }
 
-  #list(M=M, logV=logV, value=f.new)
+  # Return the result
   list(logV=logV, value=f.new)
 }
