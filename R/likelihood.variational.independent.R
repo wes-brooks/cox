@@ -1,5 +1,4 @@
-#-------------------------
-# Variatonal lower bound on likelihood (eq 3.1 of Ormerod and Wand, 2012)
+#' Variatonal lower bound on likelihood (eq 3.1 of Ormerod and Wand, 2012)
 likelihood.bound.indep <- function(M, log.diagV, ltau, y, X, S, beta, wt) {
   r <- ncol(S)
 
