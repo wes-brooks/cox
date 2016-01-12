@@ -1,6 +1,4 @@
 importFrom(Rcpp, sourceCpp)
-export(DerLogDetChol)
-export(DerLogDetCholIndep)
 export(cox.laplace)
 export(cox.variational.indep)
 export(cox.variational)
