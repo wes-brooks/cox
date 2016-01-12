@@ -59,35 +59,33 @@ cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Ma
     ll.old <- Inf
     conv <- FALSE
     while (!conv) {
-
+      # Estimate the variance for the variational approximation
       result <- conjugate.gradient(logV=log(V)[indx], objective=likelihood.bound.logV, gradient=score.logV, y=y, X=X, S=S, beta=beta, M=M, wt=wt, ltau=ltau, tol=tol)
-      #result <- conjugate.gradient(M=M, logV=log(V)[indx], objective=likelihood.bound.va, gradient=score.va, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, tol=tol)
-      #result <- optim(c(M, log(V)[indx]), fn=likelihood.bound.va, gr=score.va, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, method="BFGS")
 
       # Recover the variance estimate of the random effects from the logged upper triangle
-      #M <- result$M
       logV <- result$logV
-
       V <- matrix(0, r, r)
       V[indx] <- exp(logV)
       diagV <- diag(V)
       V <- V + t(V)
       diag(V) <- diagV
 
-      # Holding V fixed, estimate M, beta, and tau by iteratively reweighted least squares
+      # Holding V fixed, estimate the mean vector of the variational approximation
+      # First, calculate weights, offsets, and pseudodata for augmented weighted least squares
       cholV <- as.matrix(t(chol(V)))
       v <- exp(VariationalVar(cholV, S) / 2)
-
       m <- as.vector(X %*% beta)
       pseudoCovar <- rbind(S, sqrt(tau/2) * diag(r))
       z <- eta - m + (y / v - mu) / mu
       pseudodata <- c(z, rep(0, length(M)))
+
+      # Estimate M by weighted least squares
       pois <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v, rep(1, r)))
       M <- pois$coefficients
       eta <- m + as.vector(S %*% M)
       mu <- exp(eta)
 
-      # Estimate log(tau)
+      # We have everything we need to estimate tau
       ltau <- log(r) - log(sum(M^2) + sum(diag(V)))
       tau <- exp(ltau)
 
@@ -99,32 +97,30 @@ cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Ma
       } else ll.old <- ll
     }
 
-    #pseudoCovar <- rbind(cbind(X, S), cbind(Matrix(0, length(M), p),  sqrt(tau/2) * diag(r)))
+    # Holding fixed the variational approximation, estimate the fixed effect coefficients
+    # First calculate some preliminary quantities
     m <- as.vector(S %*% M)
     pseudoCovar <- X
     converged <- FALSE
     norm.old <- sum(beta^2)
-    while(!converged) {
-      #z <- eta + (y / v - mu) / mu
-      #pseudodata <- c(z, rep(0, length(M)))
-      #pois.model <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v, rep(1, r)))
-      #eta <- cbind(X, S) %*% pois.model$coefficients
-      #mu <- exp(eta)
 
+    # Run iteratively reweighted least squares
+    while(!converged) {
+
+      # Calculate the new pseudodata then do weighted least squares and interpret the output
       z <- eta - m + (y / v - mu) / mu
       pseudodata <- z
       pois <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v))
       eta <- m + as.vector(X %*% pois$coefficients)
       mu <- exp(eta)
 
+      # Check for convergence
       if (verbose) cat(".")
       norm.new <- sum(pois$coefficients^2)
       if (abs(norm.new - norm.old) < tol * (norm.old + tol)) converged <- TRUE
       norm.old <- norm.new
     }
     beta <- pois$coefficients
-    #beta <- pois.model$coefficients[1:p]
-    #M <- tail(pois.model$coefficients, r)
 
     if (verbose) cat(paste("done!\n beta = ", paste(round(beta, 3), collapse=", "), "\n ltau = ", round(ltau, 3), "\n", sep=''))
 
@@ -136,6 +132,7 @@ cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Ma
     } else lik.old <- lik
   }
 
+  # Before returning, calculate the Hessian if that was requested.
   out <- list(beta=beta, M=M, V=V, ltau=ltau, neg.loglik=lik)
   if (hess) out$hessian <- optimHess(c(beta, M, ltau), fn=likelihood.bound.fin, gr=score.fin, y=y, X=X, S=S, V=V, wt=wt)
   out
