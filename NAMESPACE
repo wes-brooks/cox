@@ -1,5 +1,4 @@
 importFrom(Rcpp, sourceCpp)
-export(cox.variational.indep)
-export(cox.variational)
+export(cox)
 export(SRE)
 useDynLib(cox)

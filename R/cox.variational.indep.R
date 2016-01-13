@@ -28,7 +28,6 @@
 #'
 #' \code{neg.log.lik}: negative of the variational lower bound on the marginal log-likelihood at convergence
 #'
-#' @export
 cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Machine$double.eps), verbose=TRUE, hess=TRUE) {
   # Start by estimating an optimal log(tau), assuming the given beta.start and u=rep(0,p)
   beta <- beta.start
