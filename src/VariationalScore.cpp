@@ -33,7 +33,7 @@ NumericVector VariationalVarIndep(const Eigen::VectorXd diagV, const Eigen::Matr
     v(i) = 0;
 
     for (int j=0; j<p; j++)
-      v(i) += pow(S.row(i)(j), 2) * diagV(j);
+      v(i) += pow(S(i, j), 2) * diagV(j);
   }
 
   return v;
