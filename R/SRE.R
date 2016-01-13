@@ -1,4 +1,6 @@
-#' Set up the multiresolution spatial basis functions
+#' Spatial random effects
+#'
+#' Generate multiresolution spatial basis functions on a given domain
 #'
 #' @param loc matrix of locations (both point observations and quadrature locations) that are to be included in the Cox process model. The columns must be named \code{x} and \code{y}.
 #' @param n.1 number of basis functions that make up the first (coarsest) resolution
@@ -9,6 +11,10 @@
 #' @param ylim bounds (in the y dimension) of the region to be spanned by the basis functions (optional)
 #'
 #' @return \code{SRE}, the spatial random effect design matrix, with a row for each location and a column for each basis function. The \code{(i,j)}th entry of this matrix is the value of basis function \code{j} at location \code{i}.
+#'
+#' @details Use multiresolution bisquares to generate Cressie-style spatial random effects on a domain defined by bounds \code{xlim} and \code{ylim} (Cressie, 2008). The default is to use three spatial resolutions: coarse, mid, and fine (the number of resolutions is controlled by the parameter \code{n.res}). By default, the coarsest resolution consists of 16 basis functions (controlled by the parameter \code{n.1}) and each successive resolution has three times as many basis functions as the next coarser resolution (controlled by parameter \cose{res.scale}). Each basis function is a bisquare centered at some point, and the bandwidth of the bases at each resolution is proportional to the smallest distance between bisquare centers at that resolution (so the bandwidth gets smaller as the resolution gets finer, because with more basis functions at fine resolution, they are closer together). The actual value of the bandwidth for a specific resolution is obtained by finding the smallest disance between center points at that resolution, then multiplying that distance by parameter \code{res.scale}. The domain is a rectangle and if the \code{xlim} or \code{ylim} parameters are omitted, the extreme values of \code{loc$x} or \code{loc$y} will be substituted, respectively.
+#'
+#' @references Cressie, N., & Johannesson, G. (2008). Fixed rank kriging for very large spatial data sets. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 70(1), 209-226.
 #'
 #' @export
 SRE <- function(loc, n.1=16, n.res=3, bw.scale=1.5, res.scale=3, xlim=NULL, ylim=NULL) {
