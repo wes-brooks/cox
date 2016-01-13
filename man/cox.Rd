@@ -5,6 +5,47 @@
 \alias{cox}
 \alias{cox-package}
 \title{cox: A package for estimating Cox process regression models}
+\usage{
+cox(y, X, S, wt, beta.start, tau.start = 100,
+  tol = sqrt(.Machine$double.eps), verbose = TRUE, hess = TRUE,
+  diagV = FALSE)
+}
+\arguments{
+\item{y}{vector of response data}
+
+\item{X}{design matrix for fized effects}
+
+\item{S}{design matrix for the spatial random effects}
+
+\item{wt}{vector of observation weights}
+
+\item{beta.start}{starting values for iteration to estimate the fixed effect coefficients}
+
+\item{tau.start}{initial value of the precision of the random effects}
+
+\item{tol}{tolerance for judging convergence of the algorithm}
+
+\item{verbose}{logical indicating whether to write detailed progress reports to standard output}
+
+\item{hess}{logical indicating whether to estimate the Hessian matrix}
+
+\item{diagV}{logical: should the variational approximation to the covariance matrix of the random effects be diagonal?}
+}
+\value{
+list of results containing the following elements:
+
+\code{beta}: estimated vector of fixed effect regression coefficients
+
+\code{M}: estimated mean vector for the posterior of the spatial random effects at the converged value of the variational approximation
+
+\code{V}: estimated covariance matrix for the posterior of the spatial random effects at the converged value of the variational approximation
+
+\code{ltau}: estimated precision component for the spatial random effect
+
+\code{hessian}: estimated hessian matrix for \code{beta}, \code{M}, and \code{ltau} at convergence (estimated by call to \code{optim})
+
+\code{neg.log.lik}: negative of the variational lower bound on the marginal log-likelihood at convergence
+}
 \description{
 The \pkg{cox} package is used to estimate Cox process regression models. The
 Cox process is a kind of mixed-effect model for spatial point processes. In
@@ -16,5 +57,13 @@ making use of numerical quadrature as in Renner et al. (2015). Finally, the
 estimation is based on maximizing the model likelihood, marginal to the
 random effects. Thus, the random effects are integrated out of the model via
 a variational approximation.
+
+Estimate the regression parameters of a Cox process model using the variational approximation.
+}
+\details{
+\code{cox} uses a variational approximation to estimate the parameters of a Cox process regression model with spatial random effects.
+The variational approximation to the posterior distribution of the spatial random effects is a multivariate normal.
+
+Estimate regression coefficients of a spatial Cox process via the variational approximation.
 }
 
