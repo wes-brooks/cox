@@ -1,7 +1,7 @@
 #' Gradient of the lower likelihood bound w.r.t. V:
 #'
 #'
-score.diagV <- function(logV, M, ltau, y, X, S, beta, wt) {
+score.diagV <- function(logV, M, ltau, y, X, S, beta, wt, StS) {
 
   eta <- as.vector(X %*% beta + S %*% M)
   mu <- exp(eta)
@@ -9,9 +9,11 @@ score.diagV <- function(logV, M, ltau, y, X, S, beta, wt) {
   diagV <- exp(logV)
 
   v <- exp(VariationalVarIndep(diagV, S) / 2)
+  dtrace <-
 
   grad.logV <- -as.vector(t(S^2) %*% as.matrix(wt * mu * v))*diagV / 2
-  grad.logV <- grad.logV - tau*diagV / 2 # D_V
+  #grad.logV <- grad.logV - tau*diagV / 2 # D_V
+  grad.logV <- grad.logV - tau * diagV * colSums(S^2) / 2 # derivative of trace t(S) %*% V %*% S
   grad.logV <- grad.logV + 1/2
 
   grad.logV

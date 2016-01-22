@@ -65,13 +65,17 @@ Eigen::MatrixXd VariationalScore(const Eigen::VectorXd mu, const Eigen::VectorXd
 Eigen::MatrixXd VariationalScoreLogV(const Eigen::VectorXd mu, const Eigen::VectorXd wt, double tau, const Eigen::VectorXd v, const Eigen::MatrixXd V, const Eigen::MatrixXd S)
 {
   int p = S.cols();
+  int n = S.rows();
 
   // Gradient of the lower likelihood bound:
   Eigen::VectorXd diag = mu.array() * wt.array() * v.array();
   Eigen::MatrixXd grad = -S.transpose() * diag.asDiagonal() * S;
 
-  for (int i=0; i<p; i++)
-    grad.diagonal()[i] -= tau;
+  // Derivative of tau * trace(V) w.r.t. V:
+  //for (int i=0; i<p; i++)
+  //  grad.diagonal()[i] -= tau;
+  for (int i=0; i<n; i++)
+    grad += S.row(i).transpose() * S.row(i);
 
   // This matrix has ones on the diagonal and twos off-diagonal.
   // The twos double the gradient off-diagonal because the variance-covariance matrix is symmetric
