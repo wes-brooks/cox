@@ -20,7 +20,7 @@
 #'
 #' @details Uses the method of conjugate gradient to maximize the marginal log-likelihood of the Cox process with respect to the log covariance matrix of the random effects. Uses backtracking to determine the step size, reducing the step size by half until stepping causes a decrease in the deviance. In the past I had used majorization-minimization to estimate an optimal step size, but the current approach seems to converge more quickly. The maximum number of steps before restarting conjugacy is the number of free parameters. In this case, that means the number of elements in the upper triangle (including the diagonal), which is r-choose-2 (where r is the dimension of the covariance matrix). Use only the upper diagonal because the covariance matrix because the covariance matrix is symmetric. Account for symmetry by doubling the gradient for all off-diagonal entries. Final convergence is when the relative decrease in the deviance is less than \code{tol}.
 #'
-conjugate.gradient <- function(objective, gradient, y, X, S, StS, beta, wt, ltau, M, logV, verbose=TRUE, tol=sqrt(.Machine$double.eps), maxiter=100) {
+conjugate.gradient <- function(objective, gradient, y, X, S, beta, wt, ltau, M, logV, verbose=TRUE, tol=sqrt(.Machine$double.eps), maxiter=100) {
 
   # Initial parameters:
   n <- nrow(S)
@@ -28,7 +28,7 @@ conjugate.gradient <- function(objective, gradient, y, X, S, StS, beta, wt, ltau
 
   # Starting values for iteration
   finished <- FALSE
-  f.new <- objective(y=y, X=X, S=S, StS=StS, beta=beta, wt=wt, ltau=ltau, M=M, logV=logV)
+  f.new <- objective(y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, M=M, logV=logV)
   check <- Inf
 
   # Iterate conjugate gradient until the likelihood stops improving
@@ -38,7 +38,7 @@ conjugate.gradient <- function(objective, gradient, y, X, S, StS, beta, wt, ltau
     iter <- iter+1
 
     # Prepare to iterate conjugate gradient descent:
-    f.outer <- objective(y=y, X=X, S=S, StS=StS, beta=beta, wt=wt, ltau=ltau, M=M, logV=logV)
+    f.outer <- objective(y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, M=M, logV=logV)
     f.old <- Inf
     t <- 1
     conv.inner <- FALSE
@@ -49,7 +49,7 @@ conjugate.gradient <- function(objective, gradient, y, X, S, StS, beta, wt, ltau
       i <- i+1
 
       # Compute the gradient of the likelihood function
-      dir.new <- gradient(y=y, X=X, S=S, StS=StS, beta=beta, wt=wt, ltau=ltau, M=M, logV=logV)
+      dir.new <- gradient(y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, M=M, logV=logV)
       dir.new <- dir.new / sqrt(sum(dir.new^2))
 
       # First iteration ignores conjugacy.
@@ -64,11 +64,11 @@ conjugate.gradient <- function(objective, gradient, y, X, S, StS, beta, wt, ltau
       logV.step <- step
 
       # Find the optimal step size via backtracking
-      f.proposed <- objective(logV=logV + t*logV.step, y=y, X=X, S=S, StS=StS, beta=beta, M=M, wt=wt, ltau=ltau)
+      f.proposed <- objective(logV=logV + t*logV.step, y=y, X=X, S=S, beta=beta, M=M, wt=wt, ltau=ltau)
       condition <- (f.proposed > f.new)
       while(condition && t > .Machine$double.eps) {
         t = 0.5*t
-        f.proposed <- objective(logV=logV + t*logV.step, y=y, X=X, S=S, StS=StS, beta=beta, M=M, wt=wt, ltau=ltau)
+        f.proposed <- objective(logV=logV + t*logV.step, y=y, X=X, S=S, beta=beta, M=M, wt=wt, ltau=ltau)
         condition <- (f.proposed > f.new)
 
         #This is the final stopping rule: t gets so small that 1/(2*t) is Inf

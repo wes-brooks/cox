@@ -38,7 +38,6 @@ cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Ma
 
   # Interpret the initial estimates
   beta <- initial$beta
-  StS <- t(S) %*% S
   #V <- matrix(min(diagV/100), r, r)
   #diag(V) <- initial$diagV
   V <- diag(initial$diagV)
@@ -61,7 +60,7 @@ cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Ma
     conv <- FALSE
     while (!conv) {
       # Estimate the variance for the variational approximation
-      result <- conjugate.gradient(logV=log(V)[indx], objective=likelihood.bound.logV, gradient=score.logV, y=y, X=X, S=S, StS=StS, beta=beta, M=M, wt=wt, ltau=ltau, tol=tol)
+      result <- conjugate.gradient(logV=log(V)[indx], objective=likelihood.bound.logV, gradient=score.logV, y=y, X=X, S=S, beta=beta, M=M, wt=wt, ltau=ltau, tol=tol)
 
       # Recover the variance estimate of the random effects from the logged upper triangle
       logV <- result$logV
@@ -74,11 +73,8 @@ cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Ma
       # Holding V fixed, estimate the mean vector of the variational approximation
       # First, calculate weights, offsets, and pseudodata for augmented weighted least squares
       cholV <- as.matrix(t(chol(V)))
-      d <- VariationalVar(cholV, S)
-      v <- exp(d / 2)
-      m <- as.vector(X %*% beta)
-      #pseudoCovar <- rbind(S, sqrt(tau/2) * diag(r))
-      pseudoCovar <- rbind(S, sqrt(tau/2) * chol(StS))
+      v <- exp(VariationalVar(cholV, S) / 2)
+      pseudoCovar <- rbind(S, sqrt(tau/2) * diag(r))
       z <- eta - m + (y / v - mu) / mu
       pseudodata <- c(z, rep(0, length(M)))
 
@@ -89,11 +85,11 @@ cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Ma
       mu <- exp(eta)
 
       # We have everything we need to estimate tau
-      ltau <- log(r) - log(as.vector(t(M) %*% StS %*% M) + sum(d))
+      ltau <- log(r) - log(sum(M^2) + sum(diag(V)))
       tau <- exp(ltau)
 
       # Check for convergence
-      ll <- likelihood.bound(y, X, S, beta, wt, ltau, M, V, StS)
+      ll <- likelihood.bound(y, X, S, beta, wt, ltau, M, V)
       if (verbose) cat(paste("Checking convergence:\n Negative log-likelihood = ", round(ll, 3), "\n Convergence criterion = ", round(abs(ll - ll.old) / (tol * (tol + abs(ll.old))), 3), "\n\n"))
       if (abs(ll - ll.old) < tol * (tol + abs(ll.old)) | ll > ll.old) {
         conv <- TRUE
@@ -128,7 +124,7 @@ cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Ma
     if (verbose) cat(paste("done!\n beta = ", paste(round(beta, 3), collapse=", "), "\n ltau = ", round(ltau, 3), "\n", sep=''))
 
     # Check for convergence
-    lik <- likelihood.bound(y, X, S, beta, wt, ltau, M, V, StS)
+    lik <- likelihood.bound(y, X, S, beta, wt, ltau, M, V)
     if (verbose)cat(paste("Checking final convergence criterion:\n likelihood=", round(lik, 3), "\n convergence criterion=", round(abs(lik - lik.old) / (tol * (tol + abs(lik.old))), 3), "\n"))
     if (abs(lik - lik.old) < tol * (tol + abs(lik.old)) | lik > lik.old) {
       conv.outer <- TRUE
@@ -137,6 +133,6 @@ cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Ma
 
   # Before returning, calculate the Hessian if that was requested.
   out <- list(beta=beta, M=M, V=V, ltau=ltau, neg.loglik=lik)
-  if (hess) out$hessian <- optimHess(c(beta, M, ltau), fn=likelihood.bound.fin, gr=score.fin, y=y, X=X, S=S, StS=StS, V=V, wt=wt)
+  if (hess) out$hessian <- optimHess(c(beta, M, ltau), fn=likelihood.bound.fin, gr=score.fin, y=y, X=X, S=S, V=V, wt=wt)
   out
 }

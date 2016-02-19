@@ -72,10 +72,10 @@ Eigen::MatrixXd VariationalScoreLogV(const Eigen::VectorXd mu, const Eigen::Vect
   Eigen::MatrixXd grad = -S.transpose() * diag.asDiagonal() * S;
 
   // Derivative of tau * trace(V) w.r.t. V:
-  //for (int i=0; i<p; i++)
-  //  grad.diagonal()[i] -= tau;
-  for (int i=0; i<n; i++)
-    grad += S.row(i).transpose() * S.row(i);
+  for (int i=0; i<p; i++)
+    grad.diagonal()[i] -= tau;
+  //for (int i=0; i<n; i++)
+  //  grad += S.row(i).transpose() * S.row(i);
 
   // This matrix has ones on the diagonal and twos off-diagonal.
   // The twos double the gradient off-diagonal because the variance-covariance matrix is symmetric

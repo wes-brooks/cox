@@ -41,7 +41,6 @@ cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sq
   eta <- as.vector(X %*% beta)
   mu <- exp(eta)
   norm.old <- Inf
-  StS <- t(S) %*% S
 
   # Iterate to estimate u
   if (verbose) cat("Making an initial estimate of ltau")
@@ -61,7 +60,7 @@ cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sq
 
     if (verbose) cat(".")
   }
-  tau <- r / as.vector(t(u) %*% StS %*% u)
+  tau <- r / norm.new
   ltau <- log(tau)
   if (verbose) cat(paste("done!\n ltau=", round(ltau, 3), "\n", sep=''))
 
@@ -102,17 +101,16 @@ cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sq
       iter.variational <- iter.variational + 1
 
       # Estimate variance of the variational approximation
-      res <- conjugate.gradient(M=M, logV=log.diag.V, objective=likelihood.bound.diagV, gradient=score.diagV, y=y, X=X, S=S, StS=StS, beta=beta, wt=wt, ltau=ltau, tol=tol)
+      res <- conjugate.gradient(M=M, logV=log.diag.V, objective=likelihood.bound.diagV, gradient=score.diagV, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, tol=tol)
       log.diag.V <- res$logV
       diagV <- exp(log.diag.V)
       if (verbose) cat("done!\n")
 
       # Estimate mean vector for the variational approximation
       # First, calculate weights, offsets, and pseudodata for weighted least squares
-      v <- exp(VariationalVarIndep(diagV, S) / 2)
       m <- as.vector(X %*% beta)
-      #pseudoCovar <- S
-      pseudoCovar <- rbind(S, sqrt(tau/2) * chol(StS))
+      v <- exp(VariationalVarIndep(diagV, S) / 2)
+      pseudoCovar <- rbind(S, sqrt(tau/2) * diag(r))
       z <- eta - m + (y / v - mu) / mu
       pseudodata <- c(z, rep(0, length(M)))
 
@@ -122,12 +120,28 @@ cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sq
       eta <- m + as.vector(S %*% M)
       mu <- exp(eta)
 
+#       # Estimate mean vector for the variational approximation
+#       # First, calculate weights, offsets, and pseudodata for weighted least squares
+#       m <- as.vector(X %*% beta)
+#       pseudoCovar <- Matrix:::cBind(Matrix:::rBind(S, sqrt(tau/2) * Matrix:::chol(StS), Matrix(0, nrow=n, ncol=r)),
+#                                     Matrix:::rBind(Diagonal(n=n), Matrix(0, nrow=r, ncol=n), Matrix:::Diagonal(x=sqrt(wt*tau.eps/2))))
+#       v <- exp(VariationalVarIndep(diagV, S) / 2 + wt / tau.eps / 2)
+#       z <- eta - m + (y / v - mu) / mu
+#       pseudodata <- c(z, rep(0, r), rep(0, n))
+#
+#       # Run weighted least squares and interpret the output
+#       pois <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v, rep(1, r), rep(1, n)))
+#       M <- pois$coefficients[1:r]
+#       delta <- tail(pois$coefficients, n)
+#       eta <- m + as.vector(S %*% M) + delta
+#       mu <- exp(eta)
+
       # Estimate tau
-      ltau <- log(r) - log(as.vector(t(M) %*% StS %*% M) + sum(colSums(S^2) * diagV))
+      ltau <- log(r) - log(sum(M^2) + sum(diagV))
       tau <- exp(ltau)
 
       # Check for convergence
-      ll <- likelihood.bound.indep(M, log.diag.V, ltau, y, X, S, beta, wt, StS)
+      ll <- likelihood.bound.indep(M, log.diag.V, ltau, y, X, S, beta, wt)
       if (verbose) cat(paste("Checking convergence:\n Negative log-likelihood = ", round(ll, 3), "\n Convergence criterion = ", round(abs(ll - ll.old) / (tol * (tol + abs(ll.old))), 3), "\n\n"))
       if (abs(ll - ll.old) < tol * (tol + abs(ll.old)) | ll > ll.old) {
         converged <- TRUE
@@ -160,7 +174,7 @@ cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sq
     if (verbose) cat(" done!\n")
 
     # Check for convergence
-    lik <- likelihood.bound.indep(M, log.diag.V, ltau, y, X, S, beta, wt, StS)
+    lik <- likelihood.bound.indep(M, log.diag.V, ltau, y, X, S, beta, wt)
     if (verbose) cat(paste(" ltau=", round(ltau, 3), "\n beta=", paste(round(beta, 3), collapse=', '), '\n\n', sep=''))
     if (verbose) cat(paste("Checking convergence:\n Negative log-likelihood = ", round(lik, 3), "\n Convergence criterion = ", round(abs(lik - lik.old) / (tol * (tol + abs(lik.old))), 3), "\n\n"))
     #if (abs(lik - lik.old) < tol * (tol + abs(lik.old)) | lik > lik.old) {
@@ -171,7 +185,7 @@ cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sq
 
   # Before returning, compute the Hessian if requested
   out <- list(beta=beta, M=M, diagV=diagV, ltau=ltau, neg.loglik=lik)
-  if (hess) out$hessian <- optimHess(c(beta, M, log.diag.V, ltau), fn=likelihood.bound.fin.indep, gr=score.fin.indep, y=y, X=X, S=S, StS=StS, wt=wt)
+  if (hess) out$hessian <- optimHess(c(beta, M, log.diag.V, ltau), fn=likelihood.bound.fin.indep, gr=score.fin.indep, y=y, X=X, S=S, wt=wt)
 
   # Return the results
   out

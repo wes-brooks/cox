@@ -11,7 +11,7 @@
 #'
 #' @return vector of gradients of the variational negative log-likelihood with respect to \code{par}
 #'
-score.fin <- function(par, y, X, S, wt, V, StS) {
+score.fin <- function(par, y, X, S, wt, V) {
   p <- ncol(X)
   r <- ncol(S)
 
@@ -53,7 +53,7 @@ score.fin <- function(par, y, X, S, wt, V, StS) {
 #' @param ltau log precision of the random effect coefficients
 #' @param M vector of means of random-effect coefficients for the variational approximation
 #'
-score.logV <- function(logV, y, X, S, beta, wt, ltau, M, StS) {
+score.logV <- function(logV, y, X, S, beta, wt, ltau, M) {
   # Recover the covariance matrix of random-effect coefficients from its log upper triangle
   V <- matrix(0, ncol(S), ncol(S))
   indx <- which(!lower.tri(V))
