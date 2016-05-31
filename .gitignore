@@ -5,3 +5,6 @@ src/*.o
 src/*.so
 */.directory
 .directory
+scratch/
+scratch/*
+
