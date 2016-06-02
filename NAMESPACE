@@ -1,4 +1,7 @@
-importFrom(Rcpp, sourceCpp)
-export(cox)
-export(SRE)
-useDynLib(cox)
+importFrom("Rcpp", "sourceCpp")
+export("cox")
+export("SRE")
+useDynLib("cox")
+useDynLib("tmb_diagonal")
+#useDynLib("tmb_general")
+
