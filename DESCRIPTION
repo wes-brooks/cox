@@ -9,9 +9,11 @@ Description: The \pkg{cox} package is used to estimate regression models for the
 License: MIT + file LICENSE
 LazyData: TRUE
 Depends:
-    Matrix
+    Matrix,
+    TMB
 Imports:
     Rcpp (>= 0.12.1),
-    RcppEigen
+    RcppEigen,
+    TMB
 LinkingTo: Rcpp, RcppEigen
 RoxygenNote: 5.0.1
