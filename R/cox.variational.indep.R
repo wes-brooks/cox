@@ -13,6 +13,7 @@
 #' @param tol tolerance for judging convergence of the algorithm
 #' @param verbose logical indicating whether to write detailed progress reports to standard output
 #' @param hess logical indicating whether to compute the hessian after convergence (slow)
+#' @param sd logical indicating whether to report the estimated standard errors of the coefficients
 #'
 #' @return list composed of these elements:
 #'
@@ -26,9 +27,13 @@
 #'
 #' \code{hessian}: estimated hessian matrix for \code{beta}, \code{M}, \code{log(diagV)} and \code{ltau} at convergence (estimated by call to \code{optim})
 #'
+#' \code{sd}: estimated standard errors of \code{beta}, \code{M}, and \code{ltau} at convergence (estimated by call to \code{sdreport})
+#'
+#' \code{object}: converged model object, returned by \code{nlminb}
+#'
 #' \code{neg.log.lik}: negative of the variational lower bound on the marginal log-likelihood at convergence
 #'
-cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Machine$double.eps), verbose=TRUE, hess=TRUE) {
+cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Machine$double.eps), verbose, hess, sd) {
   # Start by estimating an optimal log(tau), assuming the given beta.start and u=rep(0,p)
   beta <- beta.start
   tau <- tau.start
@@ -64,130 +69,39 @@ cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sq
   ltau <- log(tau)
   if (verbose) cat(paste("done!\n ltau=", round(ltau, 3), "\n", sep=''))
 
-  # Initial estimates of M, eta, and mu:
-  # StS <- apply(S, 1, function(z) sum(z^2))
-  M <- u
-  eta <- as.vector(X %*% beta + S %*% M)
-  mu <- exp(eta)
-
   # Calculate an initial estimate for V
-#   conv <- FALSE
-#   ltau.old <- -Inf
-#   while (!conv) {
-#     der2 <- -sum(exp(eta + exp(-ltau)*StS/2) * wt* (exp(-ltau)*StS/2 + (exp(-ltau)*StS/2)^2)) - sum(M^2)/2 * exp(ltau)
-#     der <- sum(exp(eta + exp(-ltau)*StS/2) * wt * exp(-ltau)*StS/2) - exp(ltau)/2 * sum(M^2)
-#     ltau <- ltau - der/der2
-#
-#     if (abs(ltau - ltau.old) < tol * (tol+abs(ltau.old))) {
-#       conv <- TRUE
-#     } else ltau.old <- ltau
-#   }
-#   tau <- exp(ltau)
-  # diagV <- rep(1/tau, r)
   diagV <- rep(1, r)
   log.diag.V <- log(diagV)
 
-  # Iterate and maximize the variational approximation to the marginal log-likelihood
-  max.iter.variational <- 3
-  lik.old <- Inf
-  conv.outer <- FALSE
-  while (!conv.outer) {
+  # Estimate variance of the variational approximation
+  obj <- MakeADFun(data=list(
+    y=y,
+    X=X,
+    S=S,
+    wt=wt
+  ),
+  parameters=list(
+    logV = log.diag.V,
+    M=u,
+    beta=beta,
+    ltau=ltau),
+  DLL="tmb_diagonal")
 
-    if (verbose) cat("Estimating variances for the variational approximation... ")
-    converged <- FALSE
-    ll.old <- Inf
-    iter.variational <- 1
-    while(!converged & iter.variational <= max.iter.variational) {
-      iter.variational <- iter.variational + 1
+  # run the variational approximation
+  res <- nlminb(obj$par, obj$fn, obj$gr, obj$he, control=list(iter.max=10000, eval.max=20000))
 
-      # Estimate variance of the variational approximation
-      res <- conjugate.gradient(M=M, logV=log.diag.V, objective=likelihood.bound.diagV, gradient=score.diagV, y=y, X=X, S=S, beta=beta, wt=wt, ltau=ltau, tol=tol)
-      log.diag.V <- res$logV
-      diagV <- exp(log.diag.V)
-      if (verbose) cat("done!\n")
+  # extract parameter estimates from the result
+  beta <- tail(res$par, p+1)[1:p]
+  log.diag.V <- res$par[1:r]
+  u <- res$par[r + 1:r]
+  ltau <- tail(res$par, 1)
 
-      # Estimate mean vector for the variational approximation
-      # First, calculate weights, offsets, and pseudodata for weighted least squares
-      m <- as.vector(X %*% beta)
-      v <- exp(VariationalVarIndep(diagV, S) / 2)
-      pseudoCovar <- rbind(S, sqrt(tau/2) * diag(r))
-      z <- eta - m + (y / v - mu) / mu
-      pseudodata <- c(z, rep(0, length(M)))
+  # bundle up the return object
+  out <- list(beta=beta, M=u, diagV=log.diag.V, ltau=ltau, neg.loglik=res$value, object=res)
+  if (hess) out$hessian <- optimHess(res$par, fn=obj$fn, gr=obj$gr, y=y, X=X, S=S, wt=wt)
+  if (sd) out$sd <- sdreport(obj)
 
-      # Run weighted least squares and interpret the output
-      pois <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v, rep(1, r)))
-      M <- pois$coefficients
-      eta <- m + as.vector(S %*% M)
-      mu <- exp(eta)
-
-#       # Estimate mean vector for the variational approximation
-#       # First, calculate weights, offsets, and pseudodata for weighted least squares
-#       m <- as.vector(X %*% beta)
-#       pseudoCovar <- Matrix:::cBind(Matrix:::rBind(S, sqrt(tau/2) * Matrix:::chol(StS), Matrix(0, nrow=n, ncol=r)),
-#                                     Matrix:::rBind(Diagonal(n=n), Matrix(0, nrow=r, ncol=n), Matrix:::Diagonal(x=sqrt(wt*tau.eps/2))))
-#       v <- exp(VariationalVarIndep(diagV, S) / 2 + wt / tau.eps / 2)
-#       z <- eta - m + (y / v - mu) / mu
-#       pseudodata <- c(z, rep(0, r), rep(0, n))
-#
-#       # Run weighted least squares and interpret the output
-#       pois <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v, rep(1, r), rep(1, n)))
-#       M <- pois$coefficients[1:r]
-#       delta <- tail(pois$coefficients, n)
-#       eta <- m + as.vector(S %*% M) + delta
-#       mu <- exp(eta)
-
-      # Estimate tau
-      ltau <- log(r) - log(sum(M^2) + sum(diagV))
-      tau <- exp(ltau)
-
-      # Check for convergence
-      ll <- likelihood.bound.indep(M, log.diag.V, ltau, y, X, S, beta, wt)
-      if (verbose) cat(paste("Checking convergence:\n Negative log-likelihood = ", round(ll, 3), "\n Convergence criterion = ", round(abs(ll - ll.old) / (tol * (tol + abs(ll.old))), 3), "\n\n"))
-      if (abs(ll - ll.old) < tol * (tol + abs(ll.old)) | ll > ll.old) {
-        converged <- TRUE
-      } else ll.old <- ll
-    }
-
-    # Hold the variational approximation fixed to estimate the fixed effect coefficients
-    # Calculate offset in preparation for IRLS
-    pseudoCovar <- X
-    m <- as.vector(S %*% M)
-    converged <- FALSE
-
-    # Iterate the IRLS algorithm
-    while(!converged) {
-
-      # Calculate pseudodata and do weighted least squares
-      z <- eta - m + (y / v - mu) / mu
-      pseudodata <- z
-      pois <- lsfit(x=pseudoCovar, y=pseudodata, intercept=FALSE, wt=c(wt * mu * v))
-      eta <- m + as.vector(X %*% pois$coefficients)
-      mu <- exp(eta)
-
-      # Check for convergence
-      norm.new <- sum(pois$coefficients^2)
-      if (abs(norm.new - norm.old) < tol * (norm.old + tol)) converged <- TRUE
-      norm.old <- norm.new
-      if (verbose) cat(".")
-    }
-    beta <- pois$coefficients
-    if (verbose) cat(" done!\n")
-
-    # Check for convergence
-    lik <- likelihood.bound.indep(M, log.diag.V, ltau, y, X, S, beta, wt)
-    if (verbose) cat(paste(" ltau=", round(ltau, 3), "\n beta=", paste(round(beta, 3), collapse=', '), '\n\n', sep=''))
-    if (verbose) cat(paste("Checking convergence:\n Negative log-likelihood = ", round(lik, 3), "\n Convergence criterion = ", round(abs(lik - lik.old) / (tol * (tol + abs(lik.old))), 3), "\n\n"))
-    #if (abs(lik - lik.old) < tol * (tol + abs(lik.old)) | lik > lik.old) {
-    if (abs(lik - lik.old) < tol * (tol + abs(lik.old))) {
-      conv.outer <- TRUE
-    } else lik.old <- lik
-  }
-
-  # Before returning, compute the Hessian if requested
-  out <- list(beta=beta, M=M, diagV=diagV, ltau=ltau, neg.loglik=lik)
-  if (hess) out$hessian <- optimHess(c(beta, M, log.diag.V, ltau), fn=likelihood.bound.fin.indep, gr=score.fin.indep, y=y, X=X, S=S, wt=wt)
-
-  # Return the results
+  # return the results
   out
 }
 
