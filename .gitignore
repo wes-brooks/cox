@@ -7,4 +7,5 @@ src/*.so
 .directory
 scratch/
 scratch/*
-
+TMB/*.o
+TMB/*.so
