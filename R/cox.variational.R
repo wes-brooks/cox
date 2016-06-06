@@ -33,7 +33,7 @@
 #'
 #' \code{neg.log.lik}: negative of the variational lower bound on the marginal log-likelihood at convergence
 #'
-cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Machine$double.eps), verbose, hess) {
+cox.variational <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Machine$double.eps), verbose, hess, sd) {
   r <- ncol(S)
   p <- ncol(X)
   n <- nrow(X)
