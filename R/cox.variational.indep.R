@@ -88,7 +88,8 @@ cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sq
   DLL="tmb_diagonal")
 
   # run the variational approximation
-  res <- nlminb(obj$par, obj$fn, obj$gr, obj$he, control=list(iter.max=10000, eval.max=20000))
+  #res <- nlminb(obj$par, obj$fn, obj$gr, obj$he, control=list(iter.max=10000, eval.max=20000))
+  res <- nlminb(obj$par, obj$fn, obj$gr, control=list(iter.max=10000, eval.max=20000))
 
   # extract parameter estimates from the result
   beta <- tail(res$par, p+1)[1:p]
@@ -97,7 +98,7 @@ cox.variational.indep <- function(y, X, S, wt, beta.start, tau.start=100, tol=sq
   ltau <- tail(res$par, 1)
 
   # bundle up the return object
-  out <- list(beta=beta, M=u, diagV=log.diag.V, ltau=ltau, neg.loglik=res$value, object=res)
+  out <- list(beta=beta, M=u, diagV=exp(log.diag.V), ltau=ltau, neg.loglik=res$value, object=res)
   if (hess) out$hessian <- optimHess(res$par, fn=obj$fn, gr=obj$gr, y=y, X=X, S=S, wt=wt)
   if (sd) out$sd <- sdreport(obj)
 
