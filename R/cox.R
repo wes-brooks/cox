@@ -61,7 +61,7 @@ cox <- function(y, X, S, wt, beta.start, tau.start=100, tol=sqrt(.Machine$double
 
   # Dispatch the function call to the appropriate method: either independent random effects or not.
   if (diagV) res <- cox.variational.indep(y=y, X=X, S=S, wt=wt, beta.start=beta.start, tau.start=tau.start, tol=tol, verbose=verbose, hess=hess, sd=sd)
-  else   if (diagV) res <- cox.variational(y=y, X=X, S=S, wt=wt, beta.start=beta.start, tau.start=tau.start, tol=tol, verbose=verbose, hess=hess, sd=sd)
+  else res <- cox.variational(y=y, X=X, S=S, wt=wt, beta.start=beta.start, tau.start=tau.start, tol=tol, verbose=verbose, hess=hess, sd=sd)
 
   res
 }
